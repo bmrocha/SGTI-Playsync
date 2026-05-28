@@ -1,0 +1,338 @@
+/* ===================================
+   PlaySync - Premium Animations
+   Spring Physics & Micro-interactions
+   =================================== */
+
+/* Spring Physics Curve (Natural Movement) */
+:root {
+    --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-out-expo: cubic-bezier(0.19, 1, 0.22, 1);
+    --ease-in-out-circ: cubic-bezier(0.85, 0, 0.15, 1);
+}
+
+/* ===================================
+   SCROLL-TRIGGERED REVEALS
+   =================================== */
+
+@keyframes fade-up {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fade-down {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fade-left {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes fade-right {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes scale-in {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* Apply animations */
+[data-animate="fade-up"] {
+    animation: fade-up 0.6s var(--ease-out-expo) both;
+}
+
+[data-animate="fade-down"] {
+    animation: fade-down 0.6s var(--ease-out-expo) both;
+}
+
+[data-animate="fade-left"] {
+    animation: fade-left 0.6s var(--ease-out-expo) both;
+}
+
+[data-animate="fade-right"] {
+    animation: fade-right 0.6s var(--ease-out-expo) both;
+}
+
+[data-animate="scale-in"] {
+    animation: scale-in 0.5s var(--spring) both;
+}
+
+/* Stagger delays (for grouped elements) */
+[data-animate][data-delay="1"] {
+    animation-delay: 0.1s;
+}
+
+[data-animate][data-delay="2"] {
+    animation-delay: 0.2s;
+}
+
+[data-animate][data-delay="3"] {
+    animation-delay: 0.3s;
+}
+
+[data-animate][data-delay="4"] {
+    animation-delay: 0.4s;
+}
+
+[data-animate][data-delay="5"] {
+    animation-delay: 0.5s;
+}
+
+/* ===================================
+   HOVER EFFECTS
+   =================================== */
+
+/* Card Lift */
+[data-hover="lift"] {
+    transition: transform 0.3s var(--ease-out-expo),
+        box-shadow 0.3s var(--ease-out-expo);
+}
+
+[data-hover="lift"]:hover {
+    transform: translateY(-4px);
+}
+
+/* Button Scale */
+[data-hover="scale"] {
+    transition: transform 0.2s var(--spring);
+}
+
+[data-hover="scale"]:hover {
+    transform: scale(1.05);
+}
+
+[data-hover="scale"]:active {
+    transform: scale(0.98);
+}
+
+/* Glow Effect */
+[data-hover="glow"] {
+    position: relative;
+    transition: filter 0.3s ease;
+}
+
+[data-hover="glow"]:hover {
+    filter: drop-shadow(0 0 8px currentColor);
+}
+
+/* ===================================
+   LOADING STATES
+   =================================== */
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Maintenance page: scanner sweep effect */
+@keyframes scanline {
+    0% {
+        top: 10%;
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 1;
+    }
+
+    90% {
+        opacity: 1;
+    }
+
+    100% {
+        top: 90%;
+        opacity: 0;
+    }
+}
+
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+/* Skeleton Loading */
+.skeleton {
+    animation: pulse 2s var(--ease-in-out-circ) infinite;
+    background: linear-gradient(90deg,
+            var(--panel-bg) 0%,
+            var(--border-color) 50%,
+            var(--panel-bg) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+    border-radius: inherit;
+}
+
+/* Spinner */
+.spinner {
+    animation: spin 1s linear infinite;
+}
+
+/* ===================================
+   THEME TRANSITIONS
+   =================================== */
+
+/* Smooth theme toggle */
+body,
+[class*="bg-"],
+[class*="text-"],
+[class*="border-"] {
+    transition: background-color 0.3s var(--ease-out-expo),
+        color 0.3s var(--ease-out-expo),
+        border-color 0.3s var(--ease-out-expo);
+}
+
+/* ===================================
+   FORM STATES
+   =================================== */
+
+@keyframes shake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-8px);
+    }
+
+    75% {
+        transform: translateX(8px);
+    }
+}
+
+/* Error shake */
+[data-error="true"] {
+    animation: shake 0.4s var(--ease-in-out-circ);
+}
+
+/* Success check */
+@keyframes check-mark {
+    0% {
+        stroke-dashoffset: 100;
+    }
+
+    100% {
+        stroke-dashoffset: 0;
+    }
+}
+
+[data-success="true"] svg path {
+    animation: check-mark 0.5s var(--ease-out-expo) forwards;
+}
+
+/* ===================================
+   MICRO-INTERACTIONS
+   =================================== */
+
+/* Underline slide animation */
+.link-underline {
+    position: relative;
+}
+
+.link-underline::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background: currentColor;
+    transition: width 0.3s var(--ease-out-expo);
+}
+
+.link-underline:hover::after {
+    width: 100%;
+}
+
+/* Icon rotate on hover */
+[data-icon-rotate]:hover svg {
+    transform: rotate(180deg);
+    transition: transform 0.4s var(--spring);
+}
+
+/* ===================================
+   ACCESSIBILITY
+   =================================== */
+
+/* Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    [data-animate],
+    [data-hover] {
+        animation: none !important;
+        transition: none !important;
+    }
+}
+
+/* Focus visible (keyboard navigation) */
+*:focus-visible {
+    outline: 2px solid var(--bg-main);
+    outline-offset: 2px;
+    border-radius: 4px;
+}

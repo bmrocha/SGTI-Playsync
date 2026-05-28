@@ -1,0 +1,47 @@
+{
+  "name": "playsync-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w apps/web",
+    "prebuild": "npm run prebuild -w apps/web",
+    "build": "npm run build -w apps/web",
+    "start": "npm run start -w apps/web",
+    "lint": "npm run lint -w apps/web",
+    "db:migrate": "npm run migrate -w packages/database",
+    "db:seed": "npm run seed -w packages/database",
+    "db:reset-admin": "npm run reset-admin -w packages/database",
+    "db:verify": "npm run verify -w packages/database",
+    "db:cleanup": "npm run cleanup -w packages/database",
+    "typecheck": "npm run typecheck -w apps/web && npm run typecheck -w packages/database",
+    "format": "prettier --write \"**/*.{ts,tsx,js,json,css,md}\"",
+    "prepare": "node -e \"try{require('child_process').execSync('husky',{stdio:'inherit'})}catch(e){}\""
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.2",
+    "prettier": "^3.5.3",
+    "turbo": "^2.5.2"
+  },
+  "optionalDependencies": {
+    "lightningcss-linux-x64-musl": "1.30.2"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,css,md}": [
+      "prettier --write"
+    ]
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

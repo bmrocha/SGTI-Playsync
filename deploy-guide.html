@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SGTI-PlaySync — Guia de Implantação</title>
+<style>
+  :root {
+    --green: #00c896;
+    --green-dark: #009e78;
+    --bg: #0d1117;
+    --bg-card: #161b22;
+    --bg-code: #1c2333;
+    --border: #30363d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --warning: #d29922;
+    --danger: #f85149;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 0;
+  }
+  .container { max-width: 920px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  /* Header */
+  .hero {
+    text-align: center;
+    padding: 60px 24px 40px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+  .hero h1 {
+    font-size: 2.6rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, var(--green), #4ade80);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero p {
+    color: var(--text-muted);
+    font-size: 1.15rem;
+    max-width: 600px;
+    margin: 12px auto 0;
+  }
+  .badge {
+    display: inline-block;
+    background: rgba(0,200,150,0.12);
+    color: var(--green);
+    border: 1px solid rgba(0,200,150,0.25);
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin: 16px 0 0;
+  }
+
+  /* Nav */
+  .nav {
+    position: sticky;
+    top: 0;
+    background: rgba(13,17,23,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    z-index: 100;
+    padding: 0 24px;
+    overflow-x: auto;
+  }
+  .nav ul {
+    list-style: none;
+    display: flex;
+    gap: 4px;
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 8px 0;
+    white-space: nowrap;
+  }
+  .nav a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 0.85rem;
+    padding: 6px 14px;
+    border-radius: 6px;
+    transition: all 0.15s;
+    font-weight: 500;
+  }
+  .nav a:hover { color: var(--text); background: rgba(255,255,255,0.06); }
+
+  /* Sections */
+  section { margin-bottom: 48px; }
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--green);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  h2 .step { 
+    background: var(--green);
+    color: #000;
+    font-size: 0.85rem;
+    font-weight: 700;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 24px 0 10px;
+    color: var(--green);
+  }
+  p, li { color: var(--text-muted); }
+  p { margin-bottom: 12px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  ul, ol { padding-left: 24px; margin-bottom: 16px; }
+  li { margin-bottom: 6px; }
+
+  /* Code blocks */
+  code {
+    font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+    font-size: 0.85em;
+  }
+  :not(pre) > code {
+    background: var(--bg-code);
+    color: var(--green);
+    padding: 2px 7px;
+    border-radius: 4px;
+    border: 1px solid rgba(0,200,150,0.15);
+    word-break: break-word;
+  }
+  pre {
+    background: var(--bg-code);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    overflow-x: auto;
+    margin: 12px 0 20px;
+    font-size: 0.85rem;
+    line-height: 1.55;
+    position: relative;
+  }
+  pre code { color: var(--text); background: none; border: none; padding: 0; }
+  .cmd { color: #f0c674; }
+  .str { color: #b5bd68; }
+  .kwd { color: #cc6666; }
+  .cmt { color: var(--text-muted); font-style: italic; }
+  .num { color: #de935f; }
+
+  /* Cards */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .card.warn { border-left: 4px solid var(--warning); }
+  .card.info { border-left: 4px solid var(--accent); }
+  .card.danger { border-left: 4px solid var(--danger); }
+  .card.success { border-left: 4px solid var(--green); }
+  .card-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 20px;
+    font-size: 0.85rem;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 10px 14px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: var(--bg-code);
+    font-weight: 600;
+    color: var(--text);
+  }
+  td { color: var(--text-muted); }
+
+  /* Variable tags */
+  .var { 
+    font-family: monospace;
+    background: rgba(88,166,255,0.1);
+    color: var(--accent);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 0.82em;
+  }
+  .required { color: var(--danger); font-weight: 600; }
+  .optional { color: var(--text-muted); }
+  
+  /* TOC */
+  .toc-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 32px;
+  }
+  .toc-card ol {
+    columns: 2;
+    column-gap: 32px;
+    padding-left: 20px;
+  }
+  .toc-card li { margin-bottom: 6px; break-inside: avoid; }
+  .toc-card a { color: var(--text); font-weight: 500; }
+  .toc-card a:hover { color: var(--green); }
+
+  /* CLI simulation */
+  .cli-block {
+    background: #000;
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 12px 0 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    border: 1px solid #333;
+  }
+  .cli-block .prompt { color: var(--green); }
+  .cli-block .output { color: #888; }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 700px) {
+    .toc-card ol { columns: 1; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 1.8rem; }
+  }
+  hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+  .footer {
+    text-align: center;
+    padding: 32px 0 0;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border);
+    margin-top: 48px;
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>SGTI-PlaySync</h1>
+  <p>Guia completo de implanta&ccedil;&atilde;o &mdash; passo a passo para colocar o sistema em produ&ccedil;&atilde;o</p>
+  <span class="badge">v0.1.0 &middot; Next.js 16 &middot; PostgreSQL 15</span>
+</div>
+
+<nav class="nav">
+  <ul>
+    <li><a href="#requisitos">1. Requisitos</a></li>
+    <li><a href="#ambiente">2. Ambiente</a></li>
+    <li><a href="#banco">3. Banco de Dados</a></li>
+    <li><a href="#variaveis">4. Vari&aacute;veis</a></li>
+    <li><a href="#instalacao">5. Instala&ccedil;&atilde;o</a></li>
+    <li><a href="#docker">6. Docker</a></li>
+    <li><a href="#primeiro-acesso">7. Primeiro Acesso</a></li>
+    <li><a href="#agente-tv">8. TV Agent</a></li>
+    <li><a href="#manutencao">9. Manuten&ccedil;&atilde;o</a></li>
+  </ul>
+</nav>
+
+<div class="container">
+
+<div class="toc-card">
+  <h3 style="margin:0 0 12px;color:var(--text)">&#x1F4D1; &Iacute;ndice</h3>
+  <ol>
+    <li><a href="#requisitos">Requisitos do Sistema</a></li>
+    <li><a href="#ambiente">Prepara&ccedil;&atilde;o do Ambiente</a></li>
+    <li><a href="#banco">Configura&ccedil;&atilde;o do Banco de Dados</a></li>
+    <li><a href="#variaveis">Vari&aacute;veis de Ambiente</a></li>
+    <li><a href="#instalacao">Instala&ccedil;&atilde;o Manual</a></li>
+    <li><a href="#docker">Implanta&ccedil;&atilde;o com Docker</a></li>
+    <li><a href="#primeiro-acesso">Primeiro Acesso &amp; P&oacute;s-implanta&ccedil;&atilde;o</a></li>
+    <li><a href="#agente-tv">Configura&ccedil;&atilde;o do TV Agent</a></li>
+    <li><a href="#manutencao">Manuten&ccedil;&atilde;o &amp; Troubleshooting</a></li>
+  </ol>
+</div>
+
+<!-- ============================================================ -->
+<section id="requisitos">
+<h2><span class="step">1</span> Requisitos do Sistema</h2>
+
+<div class="grid-2">
+<div class="card">
+  <div class="card-title">&#x1F4BB; Servidor</div>
+  <ul>
+    <li>Linux (Ubuntu 22.04+ / Debian 12+) ou Windows Server 2019+</li>
+    <li>Node.js <strong>&ge; 22</strong> LTS</li>
+    <li>npm (v10+) &mdash; incluso no Node.js</li>
+    <li>PostgreSQL <strong>15</strong> ou superior</li>
+    <li>Docker &amp; Docker Compose (opcional)</li>
+    <li>Git</li>
+  </ul>
+</div>
+<div class="card">
+  <div class="card-title">&#x1F4F6; Rede</div>
+  <ul>
+    <li>Porta <strong>3000</strong> liberada (Next.js)</li>
+    <li>Porta <strong>5432</strong> (PostgreSQL &mdash; interno)</li>
+    <li>Acesso &agrave; internet para depend&ecirc;ncias npm</li>
+    <li>DNS configurado (se usar dom&iacute;nio pr&oacute;prio)</li>
+  </ul>
+</div>
+<div class="card">
+  <div class="card-title">&#x1F4C0; Armazenamento</div>
+  <ul>
+    <li>M&iacute;nimo 2 GB de RAM</li>
+    <li>10 GB de disco para sistema + uploads</li>
+    <li>Swap configurado (recomendado 2 GB)</li>
+  </ul>
+</div>
+<div class="card">
+  <div class="card-title">&#x2699;&#xFE0F; TV Agent (players)</div>
+  <ul>
+    <li>Linux / Raspberry Pi (ARM) / Windows</li>
+    <li>Python 3.8+</li>
+    <li>VLC (player de m&iacute;dia)</li>
+    <li>Conex&atilde;o de rede com o servidor</li>
+  </ul>
+</div>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="ambiente">
+<h2><span class="step">2</span> Prepara&ccedil;&atilde;o do Ambiente</h2>
+
+<div class="card info">
+  <div class="card-title">&#x2139;&#xFE0F; Node.js via nvm (recomendado)</div>
+  <p>Instale o Node.js 22 atrav&eacute;s do nvm para gerenciar vers&otilde;es facilmente:</p>
+</div>
+
+<pre><code><span class="cmt"># Instalar nvm</span>
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+source ~/.bashrc
+
+<span class="cmt"># Instalar Node.js 22 LTS</span>
+nvm install 22
+nvm use 22
+nvm alias default 22
+
+<span class="cmt"># Verificar instala&ccedil;&atilde;o</span>
+node --version   <span class="cmt"># v22.x.x</span>
+npm --version    <span class="cmt"># 10.x.x</span></code></pre>
+
+<div class="card info">
+  <div class="card-title">&#x1F4E6; Download do Projeto</div>
+</div>
+
+<pre><code><span class="cmt"># Clonar o reposit&oacute;rio</span>
+git clone https://github.com/seu-org/SGTI-Playsync.git
+cd SGTI-Playsync
+
+<span class="cmt"># Ou extrair o arquivo ZIP no diret&oacute;rio desejado</span>
+unzip SGTI-Playsync.zip -d /opt/sgti-playsync
+cd /opt/sgti-playsync</code></pre>
+</section>
+
+<!-- ============================================================ -->
+<section id="banco">
+<h2><span class="step">3</span> Configura&ccedil;&atilde;o do Banco de Dados</h2>
+
+<h3>3.1 PostgreSQL &mdash; Instala&ccedil;&atilde;o</h3>
+
+<pre><code><span class="cmt"># Ubuntu/Debian</span>
+sudo apt update
+sudo apt install postgresql postgresql-contrib -y
+sudo systemctl enable postgresql
+sudo systemctl start postgresql
+
+<span class="cmt"># Verificar vers&atilde;o</span>
+psql --version</code></pre>
+
+<h3>3.2 Criar Database e Usu&aacute;rio</h3>
+
+<pre><code><span class="cmt"># Acessar o PostgreSQL como superusu&aacute;rio</span>
+sudo -u postgres psql
+
+<span class="cmd">postgres=#</span> CREATE USER sgti_admin WITH PASSWORD 'sua_senha_forte_aqui';
+<span class="cmd">postgres=#</span> CREATE DATABASE sgti_playsync OWNER sgti_admin;
+<span class="cmd">postgres=#</span> GRANT ALL PRIVILEGES ON DATABASE sgti_playsync TO sgti_admin;
+<span class="cmd">postgres=#</span> \c sgti_playsync
+<span class="cmd">sgti_playsync=#</span> GRANT ALL ON SCHEMA public TO sgti_admin;
+<span class="cmd">sgti_playsync=#</span> \q</code></pre>
+
+<div class="card danger">
+  <div class="card-title">&#x26A0;&#xFE0F; Senha Forte</div>
+  <p>Use uma senha de no m&iacute;nimo 24 caracteres com letras mai&uacute;sculas, min&uacute;sculas, n&uacute;meros e caracteres especiais. A string de conex&atilde;o ser&aacute; usada em v&aacute;rios lugares.</p>
+</div>
+
+<h3>3.3 Conectar ao Banco</h3>
+<p>A string de conex&atilde;o segue o formato:</p>
+<pre><code>DATABASE_URL=<span class="str">"postgresql://sgti_admin:sua_senha_forte_aqui@localhost:5432/sgti_playsync?schema=public"</span></code></pre>
+
+<h3>3.4 Migrations</h3>
+<p>Com o Node.js j&aacute; instalado, execute as migrations para criar as tabelas:</p>
+
+<pre><code><span class="cmt"># Instalar depend&ecirc;ncias do banco</span>
+cd /opt/sgti-playsync
+npm install
+
+<span class="cmt"># Exportar vari&aacute;vel de ambiente tempor&aacute;ria</span>
+export DATABASE_URL="postgresql://sgti_admin:sua_senha_forte_aqui@localhost:5432/sgti_playsync"
+
+<span class="cmt"># Executar migrations</span>
+npm run db:migrate
+
+<span class="cmt"># Verificar se tudo est&aacute; correto</span>
+npm run db:verify</code></pre>
+
+<h3>3.5 Seed (criar admin inicial)</h3>
+
+<pre><code><span class="cmt"># Povoar dados iniciais (cria usu&aacute;rio admin padr&atilde;o)</span>
+npm run db:seed
+
+<span class="cmt"># Opcional: redefinir senha do admin (se necess&aacute;rio)</span>
+npm run db:reset-admin</code></pre>
+
+<div class="card success">
+  <div class="card-title">&#x2705; Credenciais Padr&atilde;o</div>
+  <p>Ap&oacute;s o seed, o sistema cria um admin com as credenciais definidas no script de seed. Verifique o arquivo <code>packages/database/src/db/seed.ts</code> para ver o email e senha padr&atilde;o.</p>
+</div>
+
+<h3>3.6 Apenas Docker? (pule esta etapa)</h3>
+<p>Se for usar Docker Compose, o banco &eacute; criado automaticamente &mdash; v&aacute; direto para a <a href="#docker">se&ccedil;&atilde;o 6</a>.</p>
+</section>
+
+<!-- ============================================================ -->
+<section id="variaveis">
+<h2><span class="step">4</span> Vari&aacute;veis de Ambiente</h2>
+
+<p>Crie o arquivo <code>.env</code> na raiz do projeto (copie de <code>.env.example</code> se existir):</p>
+
+<pre><code><span class="cmt"># ============================================</span>
+<span class="cmt"># OBRIGAT&Oacute;RIAS</span>
+<span class="cmt"># ============================================</span>
+
+<span class="cmt"># String de conex&atilde;o PostgreSQL</span>
+DATABASE_URL=<span class="str">"postgresql://sgti_admin:sua_senha_forte_aqui@localhost:5432/sgti_playsync?schema=public"</span>
+
+<span class="cmt"># Chave secreta para JWT (HS256) — gere com: openssl rand -hex 64</span>
+JWT_SECRET=<span class="str">"sua_chave_jwt_aqui_com_pelo_menos_64_caracteres_hex"</span>
+
+<span class="cmt"># URL p&uacute;blica da aplica&ccedil;&atilde;o</span>
+NEXT_PUBLIC_API_URL=<span class="str">"http://10.1.191.107:3000"</span>
+
+<span class="cmt"># ============================================</span>
+<span class="cmt"># LICENCIAMENTO (obrigat&oacute;rio em produ&ccedil;&atilde;o)</span>
+<span class="cmt"># ============================================</span>
+
+<span class="cmt"># Emissor da licen&ccedil;a (padr&atilde;o: SGTI)</span>
+LICENSE_ISSUER=<span class="str">"SGTI"</span>
+
+<span class="cmt"># Chave p&uacute;blica RSA em formato PEM (ou base64)</span>
+LICENSE_PUBLIC_KEY=<span class="str">"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...\n-----END PUBLIC KEY-----"</span>
+
+<span class="cmt"># ID de instala&ccedil;&atilde;o (opcional — gerado automaticamente se omitido)</span>
+INSTALLATION_ID=<span class="str">"meu-servidor-producao-01"</span>
+
+<span class="cmt"># ============================================</span>
+<span class="cmt"># OPCIONAIS</span>
+<span class="cmt"># ============================================</span>
+
+<span class="cmt"># SSL do banco de dados (true/false)</span>
+DATABASE_SSL=<span class="num">false</span>
+<span class="cmt"># Caminho para certificado CA (se SSL=true)</span>
+<span class="cmt"># DATABASE_SSL_CA_PATH=/etc/ssl/certs/ca-certificates.crt</span>
+
+<span class="cmt"># N&iacute;vel de log: debug | info | warn | error</span>
+LOG_LEVEL=<span class="str">"info"</span>
+
+<span class="cmt"># Emails que ignoram 2FA (separados por v&iacute;rgula)</span>
+BYPASS_2FA_EMAILS=<span class="str">"admin@exemplo.com"</span>
+
+<span class="cmt"># Chave secreta para chamadas cron (deve bater com header Authorization)</span>
+CRON_SECRET=<span class="str">"sua_chave_cron_aqui"</span>
+
+<span class="cmt"># Sentry DSN (opcional — para rastreamento de erros)</span>
+<span class="cmt"># NEXT_PUBLIC_SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx</span>
+<span class="cmt"># SENTRY_DSN=https://xxx@xxx.ingest.sentry.io/xxx</span>
+
+<span class="cmt"># Timezone do container Docker</span>
+TZ=<span class="str">"America/Sao_Paulo"</span></code></pre>
+
+<h3>4.1 Gerar JWT_SECRET</h3>
+<pre><code><span class="cmt"># Gere uma chave segura com OpenSSL</span>
+openssl rand -hex 64
+
+<span class="cmt"># Sa&iacute;da esperada (exemplo):</span>
+7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b</code></pre>
+
+<h3>4.2 Tabela completa de vari&aacute;veis</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Vari&aacute;vel</th>
+      <th>Obrigat&oacute;ria</th>
+      <th>Descri&ccedil;&atilde;o</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code class="var">DATABASE_URL</code></td>
+      <td class="required">Sim</td>
+      <td>String de conex&atilde;o PostgreSQL</td>
+    </tr>
+    <tr>
+      <td><code class="var">JWT_SECRET</code></td>
+      <td class="required">Sim</td>
+      <td>Chave HMAC-SHA256 para JWT. M&iacute;nimo 64 caracteres hex.</td>
+    </tr>
+    <tr>
+      <td><code class="var">NEXT_PUBLIC_API_URL</code></td>
+      <td class="required">Sim</td>
+      <td>URL base da aplica&ccedil;&atilde;o (ex: <code>http://192.168.1.100:3000</code>)</td>
+    </tr>
+    <tr>
+      <td><code class="var">LICENSE_ISSUER</code></td>
+      <td class="optional">N&atilde;o (padr&atilde;o: SGTI)</td>
+      <td>Emissor da licen&ccedil;a</td>
+    </tr>
+    <tr>
+      <td><code class="var">LICENSE_PUBLIC_KEY</code></td>
+      <td class="required">Sim (produ&ccedil;&atilde;o)</td>
+      <td>Chave p&uacute;blica RSA em formato PEM para valida&ccedil;&atilde;o de licen&ccedil;a</td>
+    </tr>
+    <tr>
+      <td><code class="var">INSTALLATION_ID</code></td>
+      <td class="optional">N&atilde;o</td>
+      <td>Identificador &uacute;nico da instala&ccedil;&atilde;o</td>
+    </tr>
+    <tr>
+      <td><code class="var">DATABASE_SSL</code></td>
+      <td class="optional">N&atilde;o</td>
+      <td><code>true</code> para habilitar SSL na conex&atilde;o com o banco</td>
+    </tr>
+    <tr>
+      <td><code class="var">DATABASE_SSL_CA_PATH</code></td>
+      <td class="optional">N&atilde;o</td>
+      <td>Caminho para certificado CA (necess&aacute;rio se SSL=true)</td>
+    </tr>
+    <tr>
+      <td><code class="var">LOG_LEVEL</code></td>
+      <td class="optional">N&atilde;o</td>
+      <td><code>debug</code> | <code>info</code> | <code>warn</code> | <code>error</code></td>
+    </tr>
+    <tr>
+      <td><code class="var">BYPASS_2FA_EMAILS</code></td>
+      <td class="optional">N&atilde;o</td>
+      <td>Lista de emails separados por v&iacute;rgula que pulam 2FA</td>
+    </tr>
+    <tr>
+      <td><code class="var">CRON_SECRET</code></td>
+      <td class="optional">N&atilde;o</td>
+      <td>Token para autenticar chamadas aos endpoints cron</td>
+    </tr>
+    <tr>
+      <td><code class="var">NEXT_PUBLIC_SENTRY_DSN</code></td>
+      <td class="optional">N&atilde;o</td>
+      <td>Sentry DSN (cliente)</td>
+    </tr>
+    <tr>
+      <td><code class="var">SENTRY_DSN</code></td>
+      <td class="optional">N&atilde;o</td>
+      <td>Sentry DSN (servidor)</td>
+    </tr>
+    <tr>
+      <td><code class="var">NODE_ENV</code></td>
+      <td class="optional">N&atilde;o</td>
+      <td><code>development</code> | <code>production</code></td>
+    </tr>
+    <tr>
+      <td><code class="var">NEXT_TELEMETRY_DISABLED</code></td>
+      <td class="optional">N&atilde;o</td>
+      <td><code>1</code> para desabilitar telemetria Next.js</td>
+    </tr>
+  </tbody>
+</table>
+</section>
+
+<!-- ============================================================ -->
+<section id="instalacao">
+<h2><span class="step">5</span> Instala&ccedil;&atilde;o Manual</h2>
+
+<div class="card info">
+  <div class="card-title">&#x1F3E0; Produ&ccedil;&atilde;o (bare metal)</div>
+  <p>Execute os comandos abaixo no servidor para fazer deploy manual.</p>
+</div>
+
+<pre><code><span class="cmt"># 1. Instalar depend&ecirc;ncias do monorepo</span>
+cd /opt/sgti-playsync
+npm install
+
+<span class="cmt"># 2. Exportar vari&aacute;veis de ambiente (ou usar .env)</span>
+export $(cat .env | xargs)
+
+<span class="cmt"># 3. Executar migrations no banco</span>
+npm run db:migrate
+npm run db:seed
+
+<span class="cmt"># 4. Fazer build de produ&ccedil;&atilde;o</span>
+npm run build
+
+<span class="cmt"># 5. Iniciar o servidor</span>
+npm start</code></pre>
+
+<div class="card success">
+  <div class="card-title">&#x2705; Aplica&ccedil;&atilde;o no ar</div>
+  <p>Acesse <code>http://SEU_IP:3000</code> no navegador.</p>
+</div>
+
+<h3>5.1 Process Manager (PM2) &mdash; Recomendado</h3>
+<p>Para manter o servidor rodando em segundo plano e reiniciar automaticamente ap&oacute;s falhas:</p>
+
+<pre><code><span class="cmt"># Instalar PM2 globalmente</span>
+npm install -g pm2
+
+<span class="cmt"># Iniciar com PM2</span>
+pm2 start npm --name "sgti-playsync" -- start
+pm2 save
+pm2 startup   <span class="cmt"># Configurar restart autom&aacute;tico na inicializa&ccedil;&atilde;o do sistema</span>
+
+<span class="cmt"># Comandos &uacute;teis</span>
+pm2 status
+pm2 logs sgti-playsync
+pm2 restart sgti-playsync
+pm2 stop sgti-playsync</code></pre>
+
+<h3>5.2 Proxy Reverso (Nginx) &mdash; Opcional</h3>
+
+<pre><code><span class="cmt"># /etc/nginx/sites-available/sgti-playsync</span>
+server {
+    listen 80;
+    server_name sgti.exemplo.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}</code></pre>
+
+<pre><code>sudo ln -s /etc/nginx/sites-available/sgti-playsync /etc/nginx/sites-enabled/
+sudo nginx -t
+sudo systemctl reload nginx</code></pre>
+</section>
+
+<!-- ============================================================ -->
+<section id="docker">
+<h2><span class="step">6</span> Implanta&ccedil;&atilde;o com Docker</h2>
+
+<div class="card success">
+  <div class="card-title">&#x1F433; Mais simples e isolado</div>
+  <p>O Docker Compose sobe a aplica&ccedil;&atilde;o e o PostgreSQL em containers pr&oacute;prios.</p>
+</div>
+
+<h3>6.1 Pr&eacute;-requisitos</h3>
+<pre><code><span class="cmt"># Instalar Docker</span>
+curl -fsSL https://get.docker.com | sudo bash
+sudo usermod -aG docker $USER
+
+<span class="cmt"># Instalar Docker Compose (plugin)</span>
+sudo apt install docker-compose-plugin -y
+
+<span class="cmt"># Verificar</span>
+docker --version
+docker compose version</code></pre>
+
+<h3>6.2 Configurar .env</h3>
+<p>Edite o arquivo <code>.env</code> na raiz do projeto. Para Docker, use o nome do servi&ccedil;o como host do banco:</p>
+
+<pre><code><span class="cmt"># .env — para Docker</span>
+DATABASE_URL=<span class="str">"postgresql://sgti_admin:sua_senha_forte_aqui@playsync_db_player:5432/sgti_playsync?schema=public"</span>
+JWT_SECRET=<span class="str">"sua_chave_hex_aqui"</span>
+NEXT_PUBLIC_API_URL=<span class="str">"http://SEU_IP:3000"</span>
+POSTGRES_USER=<span class="str">"sgti_admin"</span>
+POSTGRES_PASSWORD=<span class="str">"sua_senha_forte_aqui"</span>
+POSTGRES_DB=<span class="str">"sgti_playsync"</span>
+TZ=<span class="str">"America/Sao_Paulo"</span></code></pre>
+
+<div class="card warn">
+  <div class="card-title">&#x26A0;&#xFE0F; Host do banco</div>
+  <p>No Docker, o host do PostgreSQL &eacute; o nome do servi&ccedil;o: <code>playsync_db_player</code>, n&atilde;o <code>localhost</code>.</p>
+</div>
+
+<h3>6.3 Build &amp; Executar</h3>
+
+<pre><code><span class="cmt"># Construir e iniciar todos os servi&ccedil;os</span>
+docker compose up -d --build
+
+<span class="cmt"># Acompanhar logs</span>
+docker compose logs -f
+
+<span class="cmt"># Verificar status</span>
+docker compose ps
+
+<span class="cmt"># Parar tudo</span>
+docker compose down
+
+<span class="cmt"># Parar e remover volumes (dados do banco ser&atilde;o perdidos!)</span>
+docker compose down -v</code></pre>
+
+<h3>6.4 Verificar se est&aacute; funcionando</h3>
+<pre><code><span class="cmt"># Health check do container</span>
+docker compose ps
+
+<span class="cmt"># Testar endpoint de sa&uacute;de</span>
+curl http://localhost:3000/api/health
+
+<span class="cmt"># Testar setup do banco via API</span>
+curl http://localhost:3000/api/setup-db</code></pre>
+
+<h3>6.5 Volumes importantes</h3>
+<table>
+  <thead><tr><th>Volume</th><th>Container</th><th>Descri&ccedil;&atilde;o</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>postgres_data</code></td>
+      <td>PostgreSQL</td>
+      <td>Dados persistentes do banco</td>
+    </tr>
+    <tr>
+      <td><code>./public/uploads</code></td>
+      <td>App</td>
+      <td>Uploads de m&iacute;dia dos usu&aacute;rios</td>
+    </tr>
+    <tr>
+      <td><code>./.env</code></td>
+      <td>App</td>
+      <td>Arquivo de configura&ccedil;&atilde;o montado como volume</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>6.6 Acesso ao banco via host</h3>
+<p>O banco de dados fica exposto na porta <code>127.0.0.1:5433</code> do host (n&atilde;o 5432). Conecte-se com:</p>
+<pre><code>psql -h 127.0.0.1 -p 5433 -U sgti_admin -d sgti_playsync</code></pre>
+</section>
+
+<!-- ============================================================ -->
+<section id="primeiro-acesso">
+<h2><span class="step">7</span> Primeiro Acesso &amp; P&oacute;s-implanta&ccedil;&atilde;o</h2>
+
+<h3>7.1 Login</h3>
+<ol>
+  <li>Acesse <code>http://SEU_IP:3000</code></li>
+  <li>Fa&ccedil;a login com o email e senha criados pelo <code>seed</code></li>
+  <li>Se for o primeiro acesso, o sistema pode solicitar troca de senha e configura&ccedil;&atilde;o de 2FA</li>
+</ol>
+
+<div class="card warn">
+  <div class="card-title">&#x26A0;&#xFE0F; Licenciamento</div>
+  <p>Em produ&ccedil;&atilde;o, o sistema exige uma licen&ccedil;a v&aacute;lida. Acesse <strong>Configura&ccedil;&otilde;es &rarr; Licenciamento</strong> para ativar. Em ambiente de desenvolvimento (<code>NODE_ENV=development</code>), a licen&ccedil;a n&atilde;o &eacute; exigida.</p>
+</div>
+
+<h3>7.2 Checklist p&oacute;s-implanta&ccedil;&atilde;o</h3>
+<div class="card">
+  <ul>
+    <li>&#x2705; Definir senha forte para o admin</li>
+    <li>&#x2705; Configurar 2FA (recomendado para todos os usu&aacute;rios)</li>
+    <li>&#x2705; Ativar licen&ccedil;a do sistema</li>
+    <li>&#x2705; Revisar configura&ccedil;&otilde;es de seguran&ccedil;a (IPs confi&aacute;veis, lockout)</li>
+    <li>&#x2705; Configurar integra&ccedil;&atilde;o de weather (opcional)</li>
+    <li>&#x2705; Testar upload de m&iacute;dia</li>
+    <li>&#x2705; Criar pelo menos uma empresa e uma playlist</li>
+    <li>&#x2705; Configurar cron de limpeza de logs (veja se&ccedil;&atilde;o 9)</li>
+  </ul>
+</div>
+
+<h3>7.3 Criar primeiro player</h3>
+<ol>
+  <li>V&aacute; para <strong>Players</strong> no menu lateral</li>
+  <li>Clique em <strong>Novo Player</strong></li>
+  <li>Preencha nome, empresa e clique em salvar</li>
+  <li>Copie o token gerado &mdash; ser&aacute; usado no TV Agent</li>
+</ol>
+</section>
+
+<!-- ============================================================ -->
+<section id="agente-tv">
+<h2><span class="step">8</span> Configura&ccedil;&atilde;o do TV Agent</h2>
+
+<div class="card info">
+  <div class="card-title">&#x1F4FA; Player nas TVs</div>
+  <p>O TV Agent &eacute; um script Python que roda no dispositivo (Raspberry Pi, Linux, Windows) e exibe o conte&uacute;do do PlaySync.</p>
+</div>
+
+<h3>8.1 Requisitos no dispositivo</h3>
+<ul>
+  <li>Python 3.8+</li>
+  <li>VLC instalado</li>
+  <li>Conex&atilde;o de rede com o servidor PlaySync</li>
+</ul>
+
+<h3>8.2 Instala&ccedil;&atilde;o via script</h3>
+<p>Existe um script automatizado no projeto:</p>
+<pre><code><span class="cmt"># Copiar o script para o dispositivo ou executar diretamente</span>
+cd /opt/sgti-playsync/apps/web
+chmod +x install_simple_tvagent.sh
+./install_simple_tvagent.sh</code></pre>
+
+<h3>8.3 Configura&ccedil;&atilde;o manual</h3>
+<pre><code><span class="cmt"># Instalar depend&ecirc;ncias Python</span>
+pip install requests python-vlc
+
+<span class="cmt"># Criar arquivo de configura&ccedil;&atilde;o /opt/playsync-agent/config.json</span>
+{
+    "server_url": "http://SEU_IP:3000",
+    "player_id": "ID_DO_PLAYER",
+    "token": "TOKEN_DO_PLAYER",
+    "refresh_interval": 30
+}
+
+<span class="cmt"># Executar o agente</span>
+python3 /opt/playsync-agent/agent.py</code></pre>
+
+<div class="card warn">
+  <div class="card-title">&#x26A0;&#xFE0F; Firewall</div>
+  <p>Certifique-se de que o dispositivo TV Agent consegue acessar a porta 3000 do servidor. Teste com: <code>curl http://SEU_IP:3000/api/health</code></p>
+</div>
+</section>
+
+<!-- ============================================================ -->
+<section id="manutencao">
+<h2><span class="step">9</span> Manuten&ccedil;&atilde;o &amp; Troubleshooting</h2>
+
+<h3>9.1 Comandos &uacute;teis</h3>
+<table>
+  <thead><tr><th>Comando</th><th>Descri&ccedil;&atilde;o</th></tr></thead>
+  <tbody>
+    <tr><td><code>npm run db:migrate</code></td><td>Executar migrations pendentes</td></tr>
+    <tr><td><code>npm run db:seed</code></td><td>Popular dados iniciais</td></tr>
+    <tr><td><code>npm run db:reset-admin</code></td><td>Resetar senha do admin</td></tr>
+    <tr><td><code>npm run db:verify</code></td><td>Verificar integridade do schema</td></tr>
+    <tr><td><code>npm run build</code></td><td>Build de produ&ccedil;&atilde;o</td></tr>
+    <tr><td><code>npm run typecheck</code></td><td>Verificar tipos TypeScript</td></tr>
+    <tr><td><code>npm run lint</code></td><td>Verificar estilo de c&oacute;digo</td></tr>
+  </tbody>
+</table>
+
+<h3>9.2 Cron de Limpeza de Logs</h3>
+<p>Configure uma tarefa cron no servidor para limpar logs de auditoria antigos:</p>
+<pre><code><span class="cmt"># /etc/cron.d/sgti-cleanup</span>
+0 2 * * * root curl -X POST http://localhost:3000/api/cron/cleanup-logs \
+  -H "Authorization: Bearer SUA_CRON_SECRET"
+
+<span class="cmt"># Ou no crontab do usu&aacute;rio</span>
+crontab -e
+0 2 * * * curl -X POST http://localhost:3000/api/cron/cleanup-logs \
+  -H "Authorization: Bearer SUA_CRON_SECRET"</code></pre>
+
+<h3>9.3 Atualiza&ccedil;&atilde;o do sistema</h3>
+<pre><code><span class="cmt"># Manual</span>
+cd /opt/sgti-playsync
+git pull origin main
+npm install
+npm run build
+pm2 restart sgti-playsync
+
+<span class="cmt"># Docker</span>
+docker compose pull
+docker compose up -d --build</code></pre>
+
+<h3>9.4 Problemas comuns</h3>
+
+<div class="card danger">
+  <div class="card-title">&#x1F4A5; Erro: "JWT_SECRET n&atilde;o configurado"</div>
+  <p>O arquivo <code>.env</code> n&atilde;o est&aacute; sendo carregado. Verifique se ele existe na raiz e se as vari&aacute;veis est&atilde;o corretamente definidas. No Docker, certifique-se de que <code>.env</code> est&aacute; montado como volume.</p>
+</div>
+
+<div class="card danger">
+  <div class="card-title">&#x1F4A5; Erro: "ECONNREFUSED" no banco de dados</div>
+  <p>Verifique se o PostgreSQL est&aacute; rodando e se a <code>DATABASE_URL</code> est&aacute; correta. No Docker, aguarde o banco ficar saud&aacute;vel antes da aplica&ccedil;&atilde;o.</p>
+</div>
+
+<div class="card danger">
+  <div class="card-title">&#x1F4A5; Erro: "License not activated"</div>
+  <p>O sistema exige licen&ccedil;a em produ&ccedil;&atilde;o. Configure <code>LICENSE_PUBLIC_KEY</code> e aplique a licen&ccedil;a em <strong>Configura&ccedil;&otilde;es &rarr; Licenciamento</strong>. Para desenvolvimento, use <code>NODE_ENV=development</code>.</p>
+</div>
+
+<div class="card danger">
+  <div class="card-title">&#x1F4A5; Erro: "Refresh token inv&aacute;lido"</div>
+  <p>A sess&atilde;o expirou (refresh token tem validade de 7 dias). Fa&ccedil;a login novamente. Se o erro persistir, verifique se o campo <code>refresh_token</code> existe na tabela <code>sessions</code> (rode <code>npm run db:migrate</code>).</p>
+</div>
+
+<div class="card danger">
+  <div class="card-title">&#x1F4A5; Build falha com erro de tipo TypeScript</div>
+  <p>Execute <code>npm run typecheck</code> para identificar os erros. Verifique se todas as depend&ecirc;ncias foram instaladas com <code>npm install</code>.</p>
+</div>
+
+<h3>9.5 Backup do banco de dados</h3>
+<pre><code><span class="cmt"># Backup</span>
+pg_dump -U sgti_admin -h localhost sgti_playsync > backup_$(date +%Y%m%d).sql
+
+<span class="cmt"># Restore</span>
+psql -U sgti_admin -h localhost sgti_playsync < backup_20260528.sql
+
+<span class="cmt"># Docker</span>
+docker exec -t playsync_db_player pg_dump -U sgti_admin sgti_playsync > backup.sql</code></pre>
+
+<h3>9.6 Logs</h3>
+<p>Os logs s&atilde;o gerados pelo <strong>Pino</strong> no formato JSON. N&iacute;veis dispon&iacute;veis:</p>
+<table>
+  <thead><tr><th>N&iacute;vel</th><th>Quando usar</th></tr></thead>
+  <tbody>
+    <tr><td><code>debug</code></td><td>Desenvolvimento &mdash; informa&ccedil;&otilde;es detalhadas</td></tr>
+    <tr><td><code>info</code></td><td>Produ&ccedil;&atilde;o &mdash; eventos normais do sistema</td></tr>
+    <tr><td><code>warn</code></td><td>Aten&ccedil;&atilde;o &mdash; algo inesperado, mas n&atilde;o cr&iacute;tico</td></tr>
+    <tr><td><code>error</code></td><td>Erro &mdash; requer investiga&ccedil;&atilde;o</td></tr>
+  </tbody>
+</table>
+<p>Logs de auditoria s&atilde;o armazenados no banco (tabela <code>audit_logs</code>) e podem ser visualizados no dashboard em <strong>Auditoria</strong>.</p>
+</section>
+
+<!-- ============================================================ -->
+<hr>
+
+<div class="card success" style="text-align:center;padding:32px">
+  <div class="card-title" style="font-size:1.2rem;justify-content:center">&#x1F680; Implanta&ccedil;&atilde;o conclu&iacute;da!</div>
+  <p style="margin:8px 0 0;color:var(--text-muted)">
+    Seu SGTI-PlaySync est&aacute; pronto para uso. Acesse o dashboard e comece a gerenciar players, playlists e m&iacute;dias.
+  </p>
+</div>
+
+<div class="footer">
+  <p>SGTI-PlaySync v0.1.0 &mdash; Guia de Implanta&ccedil;&atilde;o &mdash; Atualizado em Maio/2026</p>
+  <p style="margin-top:4px">Distribu&iacute;do sob licen&ccedil;a propriet&aacute;ria. Uso comercial mediante licenciamento.</p>
+</div>
+
+</div>
+</body>
+</html>

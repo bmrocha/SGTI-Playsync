@@ -1,0 +1,41 @@
+{
+  "name": "@playsync/database",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./migrate": "./src/db/migrate.ts",
+    "./seed": "./src/db/seed.ts",
+    "./reset-admin": "./src/db/reset-admin.ts",
+    "./verify": "./src/db/verify.ts",
+    "./cleanup": "./src/db/cleanup.ts"
+  },
+  "scripts": {
+    "migrate": "tsx src/db/migrate.ts",
+    "seed": "tsx src/db/seed.ts",
+    "reset-admin": "tsx src/db/reset-admin.ts",
+    "verify": "tsx src/db/verify.ts",
+    "cleanup": "tsx src/db/cleanup.ts",
+    "build:migrate": "esbuild src/db/migrate.ts --bundle --platform=node --outfile=dist/migrate.js --format=esm --external:pg-native",
+    "build:seed": "esbuild src/db/seed.ts --bundle --platform=node --outfile=dist/seed.js --format=esm --external:pg-native",
+    "typecheck": "tsc --noEmit",
+    "build:scripts": "npm run build:migrate && npm run build:seed"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^16.6.1",
+    "pg": "^8.19.0",
+    "pino": "^10.3.1",
+    "tsx": "^4.21.0"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20",
+    "@types/pg": "^8.18.0",
+    "esbuild": "^0.27.3",
+    "typescript": "^5"
+  }
+}

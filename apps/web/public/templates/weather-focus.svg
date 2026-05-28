@@ -1,0 +1,11 @@
+<svg width="200" height="150" viewBox="0 0 200 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="150" fill="#1e293b"/>
+  
+  <!-- Sidebar (Big) -->
+  <rect x="0" y="0" width="60" height="150" fill="#1e293b" stroke="#475569" stroke-width="1"/>
+  <text x="30" y="75" font-family="Arial" font-size="12" fill="#94a3b8" text-anchor="middle" transform="rotate(-90 30 75)">Previsão do Tempo</text>
+
+  <!-- Content -->
+  <rect x="60" y="0" width="140" height="150" fill="#334155" stroke="#475569" stroke-width="1"/>
+  <text x="130" y="80" font-family="Arial" font-size="14" fill="#94a3b8" text-anchor="middle">Conteúdo</text>
+</svg>

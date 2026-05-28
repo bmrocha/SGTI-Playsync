@@ -1,0 +1,26 @@
+<svg width="200" height="150" viewBox="0 0 200 150" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="200" height="150" fill="#1e293b"/>
+  
+  <!-- Sidebar Column (Left) -->
+  <rect x="0" y="0" width="44" height="150" fill="#0f172a" stroke="#475569" stroke-width="1"/>
+  
+  <!-- Weather -->
+  <rect x="2" y="2" width="40" height="50" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="22" y="30" font-family="Arial" font-size="8" fill="#94a3b8" text-anchor="middle">Clima</text>
+
+  <!-- Calendar -->
+  <rect x="2" y="54" width="40" height="58" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="22" y="85" font-family="Arial" font-size="8" fill="#94a3b8" text-anchor="middle">Agenda</text>
+
+  <!-- Clock -->
+  <rect x="2" y="114" width="40" height="34" fill="#1e293b" stroke="#334155" stroke-width="1"/>
+  <text x="22" y="135" font-family="Arial" font-size="8" fill="#94a3b8" text-anchor="middle">Hora</text>
+
+  <!-- Main Content -->
+  <rect x="44" y="0" width="156" height="135" fill="#334155" stroke="#475569" stroke-width="1"/>
+  <text x="122" y="70" font-family="Arial" font-size="12" fill="#94a3b8" text-anchor="middle">Conteúdo Principal</text>
+
+  <!-- Ticker -->
+  <rect x="44" y="135" width="156" height="15" fill="#0f172a" stroke="#475569" stroke-width="1"/>
+  <text x="122" y="146" font-family="Arial" font-size="8" fill="#94a3b8" text-anchor="middle">Notícias</text>
+</svg>
