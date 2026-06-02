@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { unlockAutoplay } from '@/lib/autoplay-unlock';
 import dynamic from 'next/dynamic';
 import { Loader2 } from 'lucide-react';
 
@@ -74,6 +75,17 @@ export default function PlayerPage() {
   const [forcedPrimaryColor, setForcedPrimaryColor] = useState<string>('#11876d');
   const playlistDataRef = useRef(playlistData);
   playlistDataRef.current = playlistData;
+
+  // Unlock autoplay as early as possible (for TVs without human interaction)
+  useEffect(() => {
+    unlockAutoplay();
+    const t1 = setTimeout(unlockAutoplay, 100);
+    const t2 = setTimeout(unlockAutoplay, 500);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, []);
 
   useEffect(() => {
     if (!playlistId) {

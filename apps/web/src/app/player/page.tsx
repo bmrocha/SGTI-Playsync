@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { decodePlaylistData } from '@/lib/playlist-link-store';
+import { unlockAutoplay } from '@/lib/autoplay-unlock';
 import dynamic from 'next/dynamic';
 import { Loader2 } from 'lucide-react';
 
@@ -35,6 +36,17 @@ export default function PlayerPage() {
 
   const id = useMemo(() => searchParams.get('id'), [searchParams]);
   const encodedData = useMemo(() => searchParams.get('data'), [searchParams]);
+
+  // Unlock autoplay as early as possible (for TVs without human interaction)
+  useEffect(() => {
+    unlockAutoplay();
+    const t1 = setTimeout(unlockAutoplay, 100);
+    const t2 = setTimeout(unlockAutoplay, 500);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, []);
 
   useEffect(() => {
     if (id) {
