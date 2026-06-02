@@ -31,17 +31,18 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Check IP Restriction
+        // IP Restriction temporariamente desativado conforme solicitado
+        // const trustedIps = settings.trusted_ips || settings.restrictIP || '';
+        // 
+        // if (!isIpTrusted(ip, trustedIps)) {
+        //     logger.warn({ ip }, 'Blocked login attempt from untrusted IP');
+        //     return NextResponse.json(
+        //         { error: 'Acesso negado: IP não autorizado.' },
+        //         { status: 403 }
+        //     );
+        // }
+
         const settings = await getSystemSettings();
-        const trustedIps = settings.trusted_ips || settings.restrictIP || '';
-        
-        if (!isIpTrusted(ip, trustedIps)) {
-            logger.warn({ ip }, 'Blocked login attempt from untrusted IP');
-            return NextResponse.json(
-                { error: 'Acesso negado: IP não autorizado.' },
-                { status: 403 }
-            );
-        }
 
         const body = await request.json();
 

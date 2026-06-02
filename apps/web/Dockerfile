@@ -62,6 +62,9 @@ RUN mkdir -p .next && chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./.next/static
 
+# Create symlink so server.js in apps/web can find static files
+RUN mkdir -p apps/web/.next && ln -s /app/.next/static apps/web/.next/static
+
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/dist-scripts ./db-scripts
 
 # Standalone output doesn't bundle node_modules in monorepo workspaces.
@@ -78,4 +81,4 @@ ENV HOSTNAME="0.0.0.0"
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
 
-CMD ["node", "server.js"]
+CMD ["node", "apps/web/server.js"]

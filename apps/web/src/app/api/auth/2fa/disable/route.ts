@@ -8,13 +8,15 @@ import { logger } from '@/lib/logger';
 
 export async function POST(request: NextRequest) {
   try {
-    const ip = getIpFromHeaders(request.headers);
+    // IP Restriction temporariamente desativado conforme solicitado
+    // const ip = getIpFromHeaders(request.headers);
+    // const trustedIps = settings.trusted_ips || settings.restrictIP || '';
+    // 
+    // if (!isIpTrusted(ip, trustedIps)) {
+    //     return NextResponse.json({ error: 'Acesso negado: IP não autorizado.' }, { status: 403 });
+    // }
+
     const settings = await getSystemSettings();
-    const trustedIps = settings.trusted_ips || settings.restrictIP || '';
-    
-    if (!isIpTrusted(ip, trustedIps)) {
-        return NextResponse.json({ error: 'Acesso negado: IP não autorizado.' }, { status: 403 });
-    }
 
     if (settings.isTwoFactorEnforced) {
         return NextResponse.json({ error: '2FA é obrigatório neste sistema e não pode ser desativado.' }, { status: 403 });

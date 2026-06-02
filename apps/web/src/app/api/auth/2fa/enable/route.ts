@@ -14,13 +14,14 @@ const enable2FASchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    const ip = getIpFromHeaders(request.headers);
-    const settings = await getSystemSettings();
-    const trustedIps = settings.trusted_ips || settings.restrictIP || '';
-    
-    if (!isIpTrusted(ip, trustedIps)) {
-        return NextResponse.json({ error: 'Acesso negado: IP não autorizado.' }, { status: 403 });
-    }
+    // IP Restriction temporariamente desativado conforme solicitado
+    // const ip = getIpFromHeaders(request.headers);
+    // const settings = await getSystemSettings();
+    // const trustedIps = settings.trusted_ips || settings.restrictIP || '';
+    // 
+    // if (!isIpTrusted(ip, trustedIps)) {
+    //     return NextResponse.json({ error: 'Acesso negado: IP não autorizado.' }, { status: 403 });
+    // }
 
     const token = request.cookies.get('auth_token')?.value;
     if (!token) {

@@ -28,7 +28,9 @@ const nextConfig: NextConfig = {
       },
     ];
   },
-  turbopack: {},
+  turbopack: {
+    root: '../../',
+  },
 
   // Ignore data folder changes to prevent dev server restarts
   webpack: (config, { dev }) => {
