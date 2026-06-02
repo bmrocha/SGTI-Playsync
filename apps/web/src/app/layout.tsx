@@ -1,6 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata } from 'next';
 // import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+import './globals.css';
 
 // const geistSans = Geist({
 //   variable: "--font-geist-sans",
@@ -12,26 +12,26 @@ import "./globals.css";
 //   subsets: ["latin"],
 // });
 
-import { getSystemSettings } from "@/lib/system-settings";
+import { getSystemSettings } from '@/lib/system-settings';
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSystemSettings();
 
   return {
-    title: settings.systemName || "PlaySync",
-    description: "Experiência de Mídia Cinematográfica",
+    title: settings.systemName || 'PlaySync',
+    description: 'Experiência de Mídia Cinematográfica',
     icons: {
-      icon: settings.faviconUrl || "/favicon.ico",
-      shortcut: settings.faviconUrl || "/favicon.ico",
-      apple: settings.faviconUrl || "/apple-icon.png",
+      icon: settings.faviconUrl || '/favicon.ico',
+      shortcut: settings.faviconUrl || '/favicon.ico',
+      apple: settings.faviconUrl || '/apple-icon.png',
     },
   };
 }
 
-import { ThemeProvider } from "@/components/layout/theme-provider";
-import { MaintenanceProvider } from "@/components/layout/maintenance-provider";
-import { SessionHeartbeat } from "@/components/session-heartbeat";
-import { ResponsiveHelper } from "@/components/debug/responsive-helper";
+import { ThemeProvider } from '@/components/layout/theme-provider';
+import { MaintenanceProvider } from '@/components/layout/maintenance-provider';
+import { SessionHeartbeat } from '@/components/session-heartbeat';
+import { ResponsiveHelper } from '@/components/debug/responsive-helper';
 
 export default function RootLayout({
   children,
@@ -40,6 +40,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
+      <head>
+        <meta charSet="utf-8" />
+      </head>
       <body
         className={`antialiased bg-background text-foreground scrollbar-hide`}
         suppressHydrationWarning

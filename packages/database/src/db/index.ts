@@ -29,6 +29,11 @@ const pool = new Pool({
   query_timeout: 10000,
 });
 
+// Ensure every connection uses UTF-8 to prevent corruption of accented characters
+pool.on('connect', (client) => {
+  client.query("SET client_encoding TO 'UTF8'").catch(() => {});
+});
+
 export const query = async (text: string, params?: any[]): Promise<QueryResult> => {
   return pool.query(text, params);
 };
