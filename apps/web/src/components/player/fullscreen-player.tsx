@@ -81,6 +81,25 @@ export function FullscreenPlayer({
     }
   }, [isOpen, items]);
 
+  // Real-time schedule re-evaluation: check every 30s if current time
+  // still allows the scheduled items; this handles items entering/exiting
+  // their time window while the player stays open 24/7.
+  useEffect(() => {
+    if (!isOpen || items.length === 0) return;
+
+    const intervalId = setInterval(() => {
+      const scheduled = getScheduledItems(items);
+      const nextIds = scheduled.map((i) => i.id).join(',');
+      const currIds = validItems.map((i) => i.id).join(',');
+      if (nextIds !== currIds) {
+        setValidItems(scheduled.length > 0 ? scheduled : items);
+        setCurrentIndex(0);
+      }
+    }, 30000);
+
+    return () => clearInterval(intervalId);
+  }, [isOpen, items, validItems]);
+
   useEffect(() => {
     const updateStage = () => {
       if (typeof window !== 'undefined') {
