@@ -11,6 +11,7 @@ const createPlaylistSchema = z.object({
   name: z.string().min(1, 'Nome é obrigatório'),
   description: z.string().optional(),
   companyIds: z.array(z.string()).optional(),
+  sectorIds: z.array(z.string()).optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -104,6 +105,11 @@ export async function POST(request: NextRequest) {
       ...result.data,
       companyIds,
     });
+
+    // Save sectors if provided
+    if (result.data.sectorIds && result.data.sectorIds.length > 0) {
+      await SectorRepository.setPlaylistSectors(playlist.id, result.data.sectorIds);
+    }
 
     logServerAction({
       userId: currentUser.id,

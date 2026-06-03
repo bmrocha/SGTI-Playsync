@@ -1,6 +1,6 @@
 import { requireLicense } from '@/lib/license-service';
 import { NextRequest, NextResponse } from 'next/server';
-import { PlaylistRepository } from '@playsync/database';
+import { PlaylistRepository, SectorRepository } from '@playsync/database';
 import { getCurrentUser } from '@/lib/server-auth';
 import { hasPermission, Permission } from '@/lib/permissions';
 import { z } from 'zod';
@@ -12,6 +12,7 @@ const updatePlaylistSchema = z.object({
   description: z.string().optional(),
   companyIds: z.array(z.string()).optional(),
   items: z.array(z.any()).optional(),
+  sectorIds: z.array(z.string()).optional(),
 });
 
 export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -41,6 +42,11 @@ export async function PUT(request: NextRequest, { params }: { params: Promise<{ 
 
     if (!updatedPlaylist) {
       return NextResponse.json({ error: 'Playlist não encontrada' }, { status: 404 });
+    }
+
+    // Update sectors if provided
+    if (result.data.sectorIds !== undefined) {
+      await SectorRepository.setPlaylistSectors(id, result.data.sectorIds);
     }
 
     logServerAction({
