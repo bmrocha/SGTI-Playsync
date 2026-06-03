@@ -153,6 +153,9 @@ export function UserFormModal({
   const [customPermissions, setCustomPermissions] = useState<string[]>([]);
   const [enableCustomPermissions, setEnableCustomPermissions] = useState(false);
   const [loadingPermissions, setLoadingPermissions] = useState(false);
+  const [availableSectors, setAvailableSectors] = useState<any[]>([]);
+  const [userSectorIds, setUserSectorIds] = useState<string[]>([]);
+  const [loadingSectors, setLoadingSectors] = useState(false);
 
   const fetchPermissions = async (userId: string) => {
     setLoadingPermissions(true);
@@ -204,8 +207,57 @@ export function UserFormModal({
     }
   };
 
+  const fetchSectors = async () => {
+    setLoadingSectors(true);
+    try {
+      const params = new URLSearchParams();
+      if (currentUser?.companyId) params.set('companyId', currentUser.companyId);
+      const res = await fetch(`/api/sectors?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        setAvailableSectors(data.sectors || []);
+      }
+    } catch (e) {
+      console.error('Failed to fetch sectors:', e);
+    } finally {
+      setLoadingSectors(false);
+    }
+  };
+
+  const fetchUserSectors = async (userId: string) => {
+    try {
+      const res = await fetch(`/api/users/${userId}/sectors`);
+      if (res.ok) {
+        const data = await res.json();
+        setUserSectorIds((data.sectors || []).map((s: any) => s.id));
+      }
+    } catch (e) {
+      console.error('Failed to fetch user sectors:', e);
+    }
+  };
+
+  const toggleSector = (sectorId: string) => {
+    setUserSectorIds((prev) =>
+      prev.includes(sectorId) ? prev.filter((s) => s !== sectorId) : [...prev, sectorId],
+    );
+  };
+
+  const saveUserSectors = async (userId: string) => {
+    try {
+      await fetch(`/api/users/${userId}/sectors`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sectorIds: userSectorIds }),
+      });
+    } catch (e) {
+      console.error('Failed to save user sectors:', e);
+    }
+  };
+
   useEffect(() => {
     if (!isOpen) return;
+
+    fetchSectors();
 
     if (editingUserId) {
       const user = users.find((u: any) => u.id === editingUserId);
@@ -220,6 +272,7 @@ export function UserFormModal({
           forceTwoFactorSetup: user.forceTwoFactorSetup || false,
         });
         fetchPermissions(editingUserId);
+        fetchUserSectors(editingUserId);
       }
     } else {
       setFormData({
@@ -233,6 +286,7 @@ export function UserFormModal({
       });
       setCustomPermissions([]);
       setEnableCustomPermissions(false);
+      setUserSectorIds([]);
     }
   }, [isOpen, editingUserId, users]);
 
@@ -265,8 +319,11 @@ export function UserFormModal({
         if (response.ok) {
           const result = await response.json();
           const userId = result.id || result.user?.id || editingUserId;
-          if (userId && enableCustomPermissions) {
-            await savePermissions(userId);
+          if (userId) {
+            if (enableCustomPermissions) {
+              await savePermissions(userId);
+            }
+            await saveUserSectors(userId);
           }
           await onSaved();
           notifySuccess('Usuário Atualizado', `${formData.name} foi atualizado com sucesso`);
@@ -296,8 +353,11 @@ export function UserFormModal({
         if (response.ok) {
           const result = await response.json();
           const userId = result.id || result.user?.id;
-          if (userId && enableCustomPermissions) {
-            await savePermissions(userId);
+          if (userId) {
+            if (enableCustomPermissions) {
+              await savePermissions(userId);
+            }
+            await saveUserSectors(userId);
           }
           await onSaved();
 
@@ -515,6 +575,39 @@ export function UserFormModal({
             )}
           </div>
         )}
+
+        {/* Setores */}
+        <div className="space-y-2 pt-2">
+          <label className="text-sm font-semibold text-text-dark flex items-center gap-2">
+            <Building2 className="w-4 h-4 text-brand-main" />
+            Setores
+          </label>
+          <p className="text-xs text-text-light -mt-1">
+            Selecione os setores que este usuário pode acessar
+          </p>
+          {loadingSectors ? (
+            <p className="text-xs text-text-light py-4 text-center">Carregando setores...</p>
+          ) : availableSectors.length === 0 ? (
+            <p className="text-xs text-text-light py-4 text-center">Nenhum setor disponível</p>
+          ) : (
+            <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
+              {availableSectors.map((sector) => (
+                <label
+                  key={sector.id}
+                  className="flex items-center gap-2 p-2.5 bg-border/20 rounded-lg border border-border cursor-pointer hover:bg-border/30 transition-colors"
+                >
+                  <input
+                    type="checkbox"
+                    checked={userSectorIds.includes(sector.id)}
+                    onChange={() => toggleSector(sector.id)}
+                    className="w-4 h-4 rounded border-border text-brand-main focus:ring-brand-main/20"
+                  />
+                  <span className="text-sm text-text-dark">{sector.name}</span>
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
 
         <div className="space-y-3 pt-2">
           <div className="flex items-center justify-between p-3 bg-border/20 rounded-lg border border-border">

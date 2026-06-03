@@ -14,4 +14,5 @@ export * from './repositories/playlist-link.repository';
 export * from './repositories/rate-limit.repository';
 export * from './repositories/refresh-token.repository';
 export * from './repositories/session.repository';
+export * from './repositories/sector.repository';
 export * from './repositories/user.repository';

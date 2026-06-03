@@ -68,7 +68,7 @@ export async function GET(request: NextRequest) {
       role,
     );
 
-    const users = rawUsers.map((u) => ({
+    const users: Record<string, any>[] = rawUsers.map((u) => ({
       id: u.id,
       email: u.email,
       name: u.name,
@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
       twoFactorEnabled: u.two_factor_enabled,
       forceTwoFactorSetup: u.force_2fa_setup,
       permissions: u.permissions || [],
-      sectors: [], // Populated below
+      sectors: [] as { id: string; name: string }[],
     }));
 
     // Fetch sectors for each user
