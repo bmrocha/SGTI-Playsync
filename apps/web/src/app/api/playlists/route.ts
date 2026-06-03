@@ -1,6 +1,6 @@
 import { requireLicense } from '@/lib/license-service';
 import { NextRequest, NextResponse } from 'next/server';
-import { PlaylistRepository } from '@playsync/database';
+import { PlaylistRepository, SectorRepository } from '@playsync/database';
 import { getCurrentUser } from '@/lib/server-auth';
 import { z } from 'zod';
 import { Permission, hasPermission, UserRole } from '@/lib/permissions';
@@ -29,12 +29,26 @@ export async function GET(request: NextRequest) {
 
     let companyId = currentUser.role === 'admin' ? undefined : currentUser.companyId || undefined;
 
-    // Allow admin to filter by specific company
     if (currentUser.role === 'admin' && searchParams.has('companyId')) {
       companyId = searchParams.get('companyId') || undefined;
     }
 
-    const { playlists, total } = await PlaylistRepository.findAll(companyId, page, limit, search);
+    // Sector-based filtering for non-admin users
+    let allowedPlaylistIds: string[] | undefined = undefined;
+    if (currentUser.role !== 'admin') {
+      const userSectorIds = await SectorRepository.getUserSectorIds(currentUser.id);
+      if (userSectorIds.length > 0) {
+        allowedPlaylistIds = await SectorRepository.getPlaylistIdsBySectorIds(userSectorIds);
+      }
+    }
+
+    const { playlists, total } = await PlaylistRepository.findAll(
+      companyId,
+      page,
+      limit,
+      search,
+      allowedPlaylistIds,
+    );
 
     return NextResponse.json({
       playlists,

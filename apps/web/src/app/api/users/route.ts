@@ -1,6 +1,6 @@
 import { requireLicense } from '@/lib/license-service';
 import { NextRequest, NextResponse } from 'next/server';
-import { UserRepository } from '@playsync/database';
+import { UserRepository, SectorRepository } from '@playsync/database';
 import type { User } from '@playsync/database';
 import bcrypt from 'bcryptjs';
 import { getCurrentUser } from '@/lib/server-auth';
@@ -80,7 +80,14 @@ export async function GET(request: NextRequest) {
       twoFactorEnabled: u.two_factor_enabled,
       forceTwoFactorSetup: u.force_2fa_setup,
       permissions: u.permissions || [],
+      sectors: [], // Populated below
     }));
+
+    // Fetch sectors for each user
+    for (const user of users) {
+      const userSectors = await SectorRepository.getUserSectors(user.id);
+      user.sectors = userSectors.map((s) => ({ id: s.id, name: s.name }));
+    }
 
     return NextResponse.json({
       users,
