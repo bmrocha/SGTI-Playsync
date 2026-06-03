@@ -15,9 +15,10 @@ export async function seed() {
 
   const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' && process.env.DATABASE_SSL === 'true'
-      ? { rejectUnauthorized: false }
-      : undefined,
+    ssl:
+      process.env.NODE_ENV === 'production' && process.env.DATABASE_SSL === 'true'
+        ? { rejectUnauthorized: false }
+        : undefined,
   });
 
   const client = await pool.connect();
@@ -27,17 +28,22 @@ export async function seed() {
 
     // Check if admin already exists
     const res = await client.query('SELECT * FROM users WHERE email = $1', [adminEmail]);
-    
+
     if (res.rowCount === 0) {
       console.log('👤 Admin user not found. Creating new admin...');
-      
-      // Use standard initial password from PRD
-      const initialPassword = 'Psw@playsync1706';
+
+      // Use initial password from environment (NEVER hardcode passwords)
+      const initialPassword = process.env.ADMIN_INITIAL_PASSWORD;
+      if (!initialPassword) {
+        throw new Error(
+          'ADMIN_INITIAL_PASSWORD is not set. Please define it in your .env file before running seed.',
+        );
+      }
       const hashedPassword = await bcrypt.hash(initialPassword, 10);
 
       await client.query(
         'INSERT INTO users (email, password, name, role, force_password_reset) VALUES ($1, $2, $3, $4, $5)',
-        [adminEmail, hashedPassword, 'Administrador PlaySync', 'admin', true]
+        [adminEmail, hashedPassword, 'Administrador PlaySync', 'admin', true],
       );
 
       console.log('\n==================================================');
@@ -62,7 +68,7 @@ export async function seed() {
 }
 
 if (process.argv[1] === __filename) {
-  seed().catch(err => {
+  seed().catch((err) => {
     console.error(err);
     process.exit(1);
   });

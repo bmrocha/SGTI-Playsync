@@ -10,8 +10,10 @@ services:
     env_file:
       - .env
     environment:
+      # ATENÇÃO: Todas as credenciais devem vir do arquivo .env (env_file acima).
+      # NÃO adicione senhas diretamente aqui.
       - NODE_ENV=${NODE_ENV:-production}
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-admin}:${POSTGRES_PASSWORD:-admin123}@playsync_db_player:5432/${POSTGRES_DB:-sgti_playsync}?schema=public
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@playsync_db_player:5432/${POSTGRES_DB}?schema=public
       - NEXT_TELEMETRY_DISABLED=1
     depends_on:
       playsync_db_player:
@@ -38,10 +40,12 @@ services:
     container_name: playsync_db_player
     restart: unless-stopped
     environment:
+      # ATENÇÃO: Todas as credenciais devem vir do arquivo .env.
+      # Não defina senhas padrão aqui para evitar exposição acidental.
       - TZ=America/Sao_Paulo
-      - POSTGRES_USER=${POSTGRES_USER:-playsync}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-admin123}
-      - POSTGRES_DB=${POSTGRES_DB:-sgti_playsync}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     ports:
       - "127.0.0.1:5433:5432"
     volumes:
@@ -49,7 +53,7 @@ services:
     networks:
       - playsync-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-playsync} -d ${POSTGRES_DB:-sgti_playsync}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 5
