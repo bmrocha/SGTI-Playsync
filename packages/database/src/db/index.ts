@@ -19,19 +19,22 @@ function getSslConfig(): boolean | { rejectUnauthorized: boolean; ca?: string } 
   return { rejectUnauthorized: true };
 }
 
+function getConnectionString(): string {
+  const base = process.env.DATABASE_URL || '';
+  // Force UTF-8 client encoding via connection string to avoid race-condition warnings
+  const separator = base.includes('?') ? '&' : '?';
+  if (base.includes('client_encoding')) return base;
+  return `${base}${separator}client_encoding=UTF8`;
+}
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: getConnectionString(),
   ssl: getSslConfig(),
   max: 10,
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 5000,
   statement_timeout: 10000,
   query_timeout: 10000,
-});
-
-// Ensure every connection uses UTF-8 to prevent corruption of accented characters
-pool.on('connect', (client) => {
-  client.query("SET client_encoding TO 'UTF8'").catch(() => {});
 });
 
 export const query = async (text: string, params?: any[]): Promise<QueryResult> => {

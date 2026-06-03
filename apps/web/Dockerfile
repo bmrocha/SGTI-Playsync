@@ -52,6 +52,9 @@ FROM base AS runner
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# netcat-openbsd is needed by docker-entrypoint.sh to wait for PostgreSQL
+RUN apk add --no-cache netcat-openbsd
+
 RUN addgroup --system --gid 1001 nodejs && \
   adduser --system --uid 1001 nextjs
 
@@ -72,6 +75,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/web/dist-scripts ./db-script
 COPY --from=builder --chown=nextjs:nodejs /app/packages/database ./packages/database
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules ./node_modules
 
+# Entrypoint that waits for DB and runs migrations before starting the app
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x ./docker-entrypoint.sh
+
 USER nextjs
 
 EXPOSE 3000
@@ -81,4 +88,4 @@ ENV HOSTNAME="0.0.0.0"
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3000/api/health || exit 1
 
-CMD ["node", "apps/web/server.js"]
+ENTRYPOINT ["./docker-entrypoint.sh"]
