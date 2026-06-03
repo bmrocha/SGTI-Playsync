@@ -62,6 +62,9 @@ export function FullscreenPlayer({
   const [showControls, setShowControls] = useState(true);
   const [stage, setStage] = useState<{ width: number; height: number } | null>(null);
   const { trackMediaPlay } = useAnalyticsStore();
+  // Track the ID of the item currently on screen so we can let it finish
+  // playing even if scheduling removes it from validItems mid-playback.
+  const currentItemIdRef = useRef<string | null>(null);
 
   const handleClose = () => {
     onClose();
@@ -81,9 +84,15 @@ export function FullscreenPlayer({
     }
   }, [isOpen, items]);
 
+  // Keep ref in sync with the item actually on screen
+  useEffect(() => {
+    currentItemIdRef.current = validItems[currentIndex]?.id ?? null;
+  }, [validItems, currentIndex]);
+
   // Real-time schedule re-evaluation: check every 30s if current time
-  // still allows the scheduled items; this handles items entering/exiting
-  // their time window while the player stays open 24/7.
+  // still allows the scheduled items. If the currently-playing item was
+  // removed from the schedule we let it finish; the next timer tick
+  // will advance using the updated validItems list.
   useEffect(() => {
     if (!isOpen || items.length === 0) return;
 
@@ -91,9 +100,20 @@ export function FullscreenPlayer({
       const scheduled = getScheduledItems(items);
       const nextIds = scheduled.map((i) => i.id).join(',');
       const currIds = validItems.map((i) => i.id).join(',');
-      if (nextIds !== currIds) {
+      if (nextIds === currIds) return;
+
+      const currentId = currentItemIdRef.current;
+      const stillPresent = currentId !== null && scheduled.some((i) => i.id === currentId);
+
+      if (stillPresent) {
+        // Preserve index pointing to the same item
+        const newIndex = scheduled.findIndex((i) => i.id === currentId);
         setValidItems(scheduled.length > 0 ? scheduled : items);
-        setCurrentIndex(0);
+        setCurrentIndex(newIndex >= 0 ? newIndex : 0);
+      } else {
+        // Current item was removed — update the list but let the item
+        // finish playing. The timer below will advance naturally.
+        setValidItems(scheduled.length > 0 ? scheduled : items);
       }
     }, 30000);
 
@@ -133,7 +153,11 @@ export function FullscreenPlayer({
   useEffect(() => {
     if (!isOpen || validItems.length <= 1 || isPaused) return;
 
-    const currentItem = validItems[currentIndex];
+    // If the current item was removed from validItems by scheduling,
+    // look it up in the original items list so its full duration is honoured
+    // (prevents cutting a long video short when the schedule window closes).
+    const currentItem =
+      validItems[currentIndex] ?? items.find((i) => i.id === currentItemIdRef.current);
     const duration = (currentItem?.duration || 10) * 1000;
 
     const timer = setTimeout(() => {
@@ -142,7 +166,7 @@ export function FullscreenPlayer({
     }, duration);
 
     return () => clearTimeout(timer);
-  }, [isOpen, validItems, currentIndex, isPaused]);
+  }, [isOpen, validItems, currentIndex, isPaused, items]);
 
   useEffect(() => {
     if (!isOpen || !validItems[currentIndex] || isPaused) return;
@@ -216,7 +240,10 @@ export function FullscreenPlayer({
     );
   }
 
-  const currentItem = validItems[currentIndex];
+  // If scheduling removed the current item from validItems, still render it
+  // so the video/image can finish its natural duration without being cut.
+  const currentItem =
+    validItems[currentIndex] ?? items.find((i) => i.id === currentItemIdRef.current);
 
   if (!currentItem) {
     console.warn('[FullscreenPlayer] No current item, returning null');
