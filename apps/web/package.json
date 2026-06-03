@@ -9,8 +9,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
-    "docker:fix": "powershell -ExecutionPolicy Bypass -File scripts/fix-docker-connection.ps1"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@playsync/database": "*",
