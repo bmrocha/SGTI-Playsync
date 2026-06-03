@@ -44,12 +44,15 @@ CREATE TABLE IF NOT EXISTS users (
         failed_login_attempts INTEGER DEFAULT 0,
         lockout_until TIMESTAMP
     WITH
-        TIME ZONE
+        TIME ZONE,
+        permissions JSONB DEFAULT '[]'::jsonb
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_email ON users (email);
 
 CREATE INDEX IF NOT EXISTS idx_users_role ON users (role);
+
+CREATE INDEX IF NOT EXISTS idx_users_permissions ON users USING GIN (permissions);
 
 CREATE TABLE IF NOT EXISTS sessions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4 (),
