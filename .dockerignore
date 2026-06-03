@@ -13,6 +13,13 @@
 *.local
 .DS_Store
 Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+desktop.ini
+*.lnk
+$RECYCLE.BIN/
+System Volume Information/
+*.stackdump
 .idea/
 .vscode/
 *.suo
