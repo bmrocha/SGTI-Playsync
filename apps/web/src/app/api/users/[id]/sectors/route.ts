@@ -11,7 +11,7 @@ const updateSectorsSchema = z.object({
   sectorIds: z.array(z.string().uuid()),
 });
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const _lc = await requireLicense();
   if (_lc) return _lc;
   try {
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
     }
 
-    const userId = params.id;
+    const { id: userId } = await params;
     const sectors = await SectorRepository.getUserSectors(userId);
     return NextResponse.json({ sectors });
   } catch (error) {
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const _lc = await requireLicense();
   if (_lc) return _lc;
   try {
@@ -51,7 +51,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: result.error.issues[0].message }, { status: 400 });
     }
 
-    const userId = params.id;
+    const { id: userId } = await params;
     await SectorRepository.setUserSectors(userId, result.data.sectorIds);
 
     logServerAction({

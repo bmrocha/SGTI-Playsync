@@ -11,7 +11,7 @@ const updateSectorsSchema = z.object({
   sectorIds: z.array(z.string().uuid()),
 });
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const _lc = await requireLicense();
   if (_lc) return _lc;
   try {
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
     }
 
-    const playlistId = params.id;
+    const { id: playlistId } = await params;
     const sectors = await SectorRepository.getPlaylistSectors(playlistId);
     return NextResponse.json({ sectors });
   } catch (error) {
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const _lc = await requireLicense();
   if (_lc) return _lc;
   try {
@@ -55,7 +55,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: result.error.issues[0].message }, { status: 400 });
     }
 
-    const playlistId = params.id;
+    const { id: playlistId } = await params;
     await SectorRepository.setPlaylistSectors(playlistId, result.data.sectorIds);
 
     logServerAction({

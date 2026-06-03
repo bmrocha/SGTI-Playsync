@@ -19,6 +19,7 @@ export class PlaylistRepository {
     page: number = 1,
     limit: number = 10,
     search?: string,
+    allowedPlaylistIds?: string[],
   ): Promise<{ playlists: Playlist[]; total: number }> {
     const offset = (page - 1) * limit;
     const params: any[] = [];
@@ -38,6 +39,15 @@ export class PlaylistRepository {
     if (search) {
       conditions.push(`p.name ILIKE $${params.length + 1}`);
       params.push(`%${search}%`);
+    }
+
+    if (allowedPlaylistIds && allowedPlaylistIds.length > 0) {
+      const placeholders = allowedPlaylistIds.map((_, i) => `$${params.length + i + 1}`).join(', ');
+      conditions.push(`p.id IN (${placeholders})`);
+      params.push(...allowedPlaylistIds);
+    } else if (allowedPlaylistIds && allowedPlaylistIds.length === 0) {
+      // User has sectors but no playlists match - return empty
+      return { playlists: [], total: 0 };
     }
 
     if (conditions.length > 0) {
