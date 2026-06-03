@@ -79,6 +79,7 @@ export async function GET(request: NextRequest) {
       forcePasswordReset: u.force_password_reset,
       twoFactorEnabled: u.two_factor_enabled,
       forceTwoFactorSetup: u.force_2fa_setup,
+      permissions: u.permissions || [],
     }));
 
     return NextResponse.json({
@@ -150,6 +151,7 @@ export async function POST(request: NextRequest) {
       lastLogin: rawUser.last_login,
       forcePasswordReset: rawUser.force_password_reset,
       forceTwoFactorSetup: rawUser.force_2fa_setup,
+      permissions: rawUser.permissions || [],
     };
 
     await logServerAction({
@@ -303,6 +305,7 @@ export async function PUT(request: NextRequest) {
       forcePasswordReset: rawUser.force_password_reset,
       theme: rawUser.theme,
       primaryColor: rawUser.primary_color,
+      permissions: rawUser.permissions || [],
     };
 
     // AUDIT LOGGING
