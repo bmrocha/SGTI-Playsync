@@ -36,9 +36,10 @@ ENV NEXT_OUTPUT_STANDALONE=true
 RUN npm run build -w apps/web
 
 # Bundle DB scripts for runner stage (standalone .js files)
+# Use --format=cjs because pg uses internal require() calls that break in pure ESM
 RUN mkdir -p apps/web/dist-scripts && \
-  ./node_modules/.bin/esbuild packages/database/src/db/migrate.ts --bundle --platform=node --outfile=apps/web/dist-scripts/migrate.js --format=esm --external:pg-native && \
-  ./node_modules/.bin/esbuild packages/database/src/db/seed.ts --bundle --platform=node --outfile=apps/web/dist-scripts/seed.js --format=esm --external:pg-native && \
+  ./node_modules/.bin/esbuild packages/database/src/db/migrate.ts --bundle --platform=node --outfile=apps/web/dist-scripts/migrate.cjs --format=cjs --external:pg-native && \
+  ./node_modules/.bin/esbuild packages/database/src/db/seed.ts --bundle --platform=node --outfile=apps/web/dist-scripts/seed.cjs --format=cjs --external:pg-native && \
   cp packages/database/src/db/schema.sql apps/web/dist-scripts/
 
 # Remove dev dependencies so runner image stays lean

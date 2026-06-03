@@ -22,15 +22,15 @@ done
 echo "✅ PostgreSQL is ready!"
 
 # Run migrations if the bundled script exists
-if [ -f "./db-scripts/migrate.js" ]; then
+if [ -f "./db-scripts/migrate.cjs" ]; then
   echo "🔄 Running database migrations..."
-  node ./db-scripts/migrate.js || echo "⚠️  Migration failed (DB may already be initialized). Continuing..."
+  node ./db-scripts/migrate.cjs || echo "⚠️  Migration failed (DB may already be initialized). Continuing..."
 fi
 
 # Run seed if the bundled script exists (optional)
-if [ -f "./db-scripts/seed.js" ]; then
+if [ -f "./db-scripts/seed.cjs" ]; then
   echo "🌱 Running database seed..."
-  node ./db-scripts/seed.js || echo "⚠️  Seed failed or already seeded. Continuing..."
+  node ./db-scripts/seed.cjs || echo "⚠️  Seed failed or already seeded. Continuing..."
 fi
 
 echo "🚀 Starting Next.js application..."
