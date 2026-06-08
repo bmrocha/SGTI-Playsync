@@ -56,6 +56,7 @@ export function FullscreenPlayer({
   const rootRef = useRef<HTMLDivElement>(null);
   const [validItems, setValidItems] = useState<MediaItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [loopCount, setLoopCount] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -118,8 +119,12 @@ export function FullscreenPlayer({
     const duration = (currentItem?.duration || 10) * 1000;
 
     const timer = setTimeout(() => {
-      setCurrentIndex((prev) => (prev + 1) % validItems.length);
-      setLoopCount((prev) => prev + 1);
+      setIsTransitioning(true);
+      setTimeout(() => {
+        setCurrentIndex((prev) => (prev + 1) % validItems.length);
+        setLoopCount((prev) => prev + 1);
+        setTimeout(() => setIsTransitioning(false), 50);
+      }, 300);
     }, duration);
 
     return () => clearTimeout(timer);
@@ -295,6 +300,16 @@ export function FullscreenPlayer({
     }
     if (effectiveType === 'web' && looksLikeImage) effectiveType = 'image';
     if (effectiveType === 'web' && looksLikeVideo) effectiveType = 'video';
+
+    if (
+      effectiveType !== 'youtube' &&
+      effectiveType !== 'image' &&
+      effectiveType !== 'video' &&
+      url &&
+      (url.startsWith('http://') || url.startsWith('https://'))
+    ) {
+      effectiveType = 'web';
+    }
 
     if (effectiveType === 'video') {
       return (
@@ -485,7 +500,8 @@ export function FullscreenPlayer({
       <div className="relative w-full h-full z-0 flex items-center justify-center">
         <div
           className={cn(
-            'relative overflow-hidden transition-colors duration-500 border-white/10 dark:border-white/5',
+            'relative w-full h-full overflow-hidden transition-all duration-300 border-white/10 dark:border-white/5',
+            isTransitioning ? 'opacity-0 scale-105' : 'opacity-100 scale-100',
             theme === 'dark' ? 'bg-black' : 'bg-white',
           )}
           style={{

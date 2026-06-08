@@ -58,12 +58,6 @@ export function Sidebar() {
       permission: Permission.MANAGE_SETTINGS,
     },
     {
-      name: 'Telas',
-      href: '/dashboard/players',
-      icon: Monitor,
-      permission: Permission.VIEW_PLAYER,
-    },
-    {
       name: 'Analytics',
       href: '/dashboard/analytics',
       icon: TrendingUp,

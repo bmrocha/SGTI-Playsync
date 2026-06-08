@@ -74,7 +74,12 @@ export class PlaylistRepository {
                     SELECT json_agg(mi ORDER BY mi."order")
                     FROM media_items mi
                     WHERE mi.playlist_id = p.id
-                ) as items
+                ) as items,
+                (
+                    SELECT COUNT(DISTINCT pl.id)
+                    FROM players pl
+                    WHERE pl.playlist_id = p.id AND pl.is_online = true
+                ) as "activePlayers"
             FROM playlists p
             ${whereClause}
             ORDER BY p.name ASC
