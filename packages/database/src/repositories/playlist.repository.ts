@@ -78,7 +78,7 @@ export class PlaylistRepository {
                 (
                     SELECT COUNT(DISTINCT pl.id)
                     FROM players pl
-                    WHERE pl.playlist_id = p.id AND pl.is_online = true
+                    WHERE pl.current_playlist_id = p.id AND pl.status = 'online'
                 ) as "activePlayers"
             FROM playlists p
             ${whereClause}
