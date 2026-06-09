@@ -44,17 +44,17 @@ export function Sidebar() {
       permission: Permission.VIEW_COMPANY,
     },
     {
+      name: 'Setores',
+      href: '/dashboard/sectors',
+      icon: Layers,
+      permission: Permission.MANAGE_SETTINGS,
+    },
+    {
       name: 'Playlists',
       href: '/dashboard/playlists',
       icon: Tv,
       permission: Permission.VIEW_PLAYLIST,
       aliases: ['/dashboard/editor'],
-    },
-    {
-      name: 'Setores',
-      href: '/dashboard/sectors',
-      icon: Layers,
-      permission: Permission.MANAGE_SETTINGS,
     },
     {
       name: 'Telas',
@@ -87,15 +87,15 @@ export function Sidebar() {
     <div
       className={cn(
         'flex h-full flex-col border-r text-white transition-all duration-300 shadow-2xl z-50 relative',
-        isSidebarCollapsed ? 'w-[70px] laptop:w-[70px]' : 'w-[240px] laptop:w-[220px]',
+        isSidebarCollapsed ? 'w-17.5 laptop:w-[70px]' : 'w-[240px] laptop:w-[220px]',
         theme === 'dark' ? 'backdrop-blur-[12px]' : '',
       )}
       style={{
         background:
           theme === 'dark'
             ? `linear-gradient(180deg, var(--bg-main) 0%, rgba(0,0,0,0.92) 100%)`
-            : `linear-gradient(180deg, var(--sidebar-bg) 0%, var(--sidebar-bottom) 100%)`,
-        borderColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.04)' : 'rgba(255, 255, 255, 0.1)',
+            : `linear-gradient(180deg, #f8fafc 0%, #f0f4f8 50%, #e8edf2 100%)`,
+        borderColor: theme === 'dark' ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.06)',
       }}
     >
       {/* Header Section with Toggle */}

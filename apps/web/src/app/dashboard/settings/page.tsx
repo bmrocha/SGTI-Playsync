@@ -581,7 +581,7 @@ export default function SystemSettingsPage() {
   ];
 
   return (
-    <div className="pt-3 pb-24 sm:pb-36 lg:pb-44 px-4 sm:px-6 lg:px-8 animate-fadeIn max-w-[1800px] mx-auto flex-1 flex flex-col overflow-hidden">
+    <div className="pt-3 pb-24 sm:pb-36 lg:pb-44 px-4 sm:px-6 lg:px-8 animate-fadeIn max-w-450 mx-auto flex-1 flex flex-col overflow-hidden">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 pb-4 border-b border-zinc-200 dark:border-zinc-800 z-10 shrink-0 relative">
         <div>
