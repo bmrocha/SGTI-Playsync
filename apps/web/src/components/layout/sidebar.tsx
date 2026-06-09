@@ -9,7 +9,6 @@ import {
   Settings,
   Building2,
   Tv,
-  LogOut,
   TrendingUp,
   Users,
   Activity,
@@ -83,24 +82,11 @@ export function Sidebar() {
     },
   ];
 
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-
-  const handleLogout = async () => {
-    setIsLoggingOut(true);
-    try {
-      await logout();
-      window.location.href = '/login';
-    } catch (error) {
-      console.error('Logout failed:', error);
-      setIsLoggingOut(false);
-    }
-  };
-
   return (
     <div
       className={cn(
         'flex h-full flex-col border-r text-white transition-all duration-300 shadow-2xl z-50 relative',
-        isSidebarCollapsed ? 'w-[80px] laptop:w-[70px]' : 'w-[250px] laptop:w-[220px]',
+        isSidebarCollapsed ? 'w-[70px] laptop:w-[70px]' : 'w-[240px] laptop:w-[220px]',
         theme === 'dark' ? 'backdrop-blur-[12px]' : '',
       )}
       style={{
@@ -116,8 +102,8 @@ export function Sidebar() {
         className={cn(
           'flex shrink-0 items-center border-b border-white/25 mb-2 transition-all duration-300 relative sidebar-header',
           isSidebarCollapsed
-            ? 'h-[70px] laptop:h-[60px] justify-center flex-col gap-1'
-            : 'h-[70px] laptop:h-[60px] px-6 laptop:px-4',
+            ? 'h-[60px] laptop:h-[60px] justify-center flex-col gap-1'
+            : 'h-[60px] laptop:h-[60px] px-4 laptop:px-4',
         )}
       >
         {/* Logo Area */}
@@ -292,42 +278,6 @@ export function Sidebar() {
             )}
           </Link>
         )}
-
-        <button
-          onClick={handleLogout}
-          disabled={isLoggingOut}
-          title={isSidebarCollapsed ? 'Sair' : ''}
-          className={cn(
-            'group flex items-center rounded-xl transition-all duration-300 ease-out w-full border relative overflow-hidden',
-            isSidebarCollapsed
-              ? 'justify-center p-3 laptop:p-2.5'
-              : 'gap-x-4 laptop:gap-x-3 p-3.5 laptop:p-2.5',
-            'hover:scale-[1.02] active:scale-[0.98]',
-            'border-white/5 bg-white/5 text-white/85 hover:bg-red-500 hover:border-red-500 hover:text-white',
-          )}
-        >
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-200%] group-hover:animate-shimmer" />
-
-          {isLoggingOut ? (
-            <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin z-10" />
-          ) : (
-            <LogOut
-              className={cn(
-                'shrink-0 transition-all duration-300 z-10',
-                isSidebarCollapsed
-                  ? 'h-6 w-6 laptop:h-5 laptop:w-5'
-                  : 'h-5 w-5 laptop:h-4 laptop:w-4',
-                'group-hover:rotate-[-5deg] group-hover:scale-110',
-              )}
-            />
-          )}
-
-          {!isSidebarCollapsed && (
-            <span className="whitespace-nowrap font-semibold tracking-wide z-10 transition-colors laptop:text-sm">
-              {isLoggingOut ? 'Saindo...' : 'Sair do Sistema'}
-            </span>
-          )}
-        </button>
       </div>
 
       {/* Toggle Button - Clean Premium Style */}

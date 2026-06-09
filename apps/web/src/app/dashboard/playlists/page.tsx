@@ -10,6 +10,7 @@ import { Permission, hasPermission, UserRole } from '@/lib/permissions';
 import { Pagination } from '@/components/ui/pagination';
 import { useDebounce } from '@/hooks/use-debounce';
 import { notifyError, notifySuccess } from '@/lib/notification-store';
+import { Grid, List } from 'lucide-react';
 
 import { PageHeader } from '@/components/playlists/page-header';
 import { FiltersBar } from '@/components/playlists/filters-bar';
@@ -63,6 +64,8 @@ export default function PlaylistsPage() {
     isOpen: false,
     playlist: null,
   });
+
+  const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
 
   const fetchData = async () => {
     try {
@@ -254,33 +257,116 @@ export default function PlaylistsPage() {
           />
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 laptop:gap-6">
-          {filteredPlaylists.map((pl) => (
-            <PlaylistCard
-              key={pl.id}
-              playlist={pl}
-              user={user}
-              companies={companies}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onSettings={handleSettings}
-              onViewCompanies={handleViewCompanies}
-            />
-          ))}
-
-          {filteredPlaylists.length === 0 &&
-            user &&
-            (hasPermission(user.role as UserRole, Permission.CREATE_PLAYLIST) ||
-              searchTerm ||
-              companyNameFilter) && (
-              <EmptyState
-                searchTerm={searchTerm}
-                hasActiveFilter={!!companyNameFilter}
-                onClearFilters={() => setSearchTerm('')}
-                onCreatePlaylist={() => setIsCreateModalOpen(true)}
-              />
-            )}
+        {/* View Mode Toggle */}
+        <div className="flex items-center justify-between mb-4 mt-4">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setViewMode('card')}
+              className={`p-2 rounded-lg transition-all ${viewMode === 'card' ? 'bg-brand-main text-white' : 'bg-panel-bg border border-border text-text-light hover:border-brand-main'}`}
+              title="Visualização em Cards"
+            >
+              <Grid className="w-4 h-4" />
+            </button>
+            <button
+              onClick={() => setViewMode('list')}
+              className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-brand-main text-white' : 'bg-panel-bg border border-border text-text-light hover:border-brand-main'}`}
+              title="Visualização em Lista"
+            >
+              <List className="w-4 h-4" />
+            </button>
+          </div>
+          <span className="text-xs text-text-light">{totalItems} playlists</span>
         </div>
+
+        {viewMode === 'card' ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 laptop:gap-6">
+            {filteredPlaylists.map((pl) => (
+              <PlaylistCard
+                key={pl.id}
+                playlist={pl}
+                user={user}
+                companies={companies}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onSettings={handleSettings}
+                onViewCompanies={handleViewCompanies}
+              />
+            ))}
+
+            {filteredPlaylists.length === 0 &&
+              user &&
+              (hasPermission(user.role as UserRole, Permission.CREATE_PLAYLIST) ||
+                searchTerm ||
+                companyNameFilter) && (
+                <EmptyState
+                  searchTerm={searchTerm}
+                  hasActiveFilter={!!companyNameFilter}
+                  onClearFilters={() => setSearchTerm('')}
+                  onCreatePlaylist={() => setIsCreateModalOpen(true)}
+                />
+              )}
+          </div>
+        ) : (
+          <div className="bg-panel-bg rounded-xl border border-border overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-border/30">
+                <tr>
+                  <th className="text-left px-4 py-3 text-xs font-bold text-text-light uppercase tracking-wider">
+                    Nome
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-bold text-text-light uppercase tracking-wider">
+                    Empresas
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-bold text-text-light uppercase tracking-wider">
+                    Mídias
+                  </th>
+                  <th className="text-right px-4 py-3 text-xs font-bold text-text-light uppercase tracking-wider">
+                    Ações
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filteredPlaylists.map((pl) => (
+                  <tr key={pl.id} className="hover:bg-border/10 transition-colors">
+                    <td className="px-4 py-3">
+                      <span className="text-sm font-medium text-text-dark">{pl.name}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-sm text-text-light">
+                        {pl.companies.length} empresas
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="text-sm text-text-light">{pl.items.length} mídias</span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => handleEdit(pl.id)}
+                          className="px-2 py-1 text-xs text-text-light hover:text-brand-main hover:bg-brand-main/10 rounded transition-colors"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => handleSettings(pl)}
+                          className="px-2 py-1 text-xs text-text-light hover:text-blue-500 hover:bg-blue-500/10 rounded transition-colors"
+                        >
+                          Config
+                        </button>
+                        <button
+                          onClick={() => handleDelete(pl.id, pl.name)}
+                          className="px-2 py-1 text-xs text-text-light hover:text-red-500 hover:bg-red-500/10 rounded transition-colors"
+                        >
+                          Excluir
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {totalPages > 1 && (
           <div className="mt-8">
