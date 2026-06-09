@@ -41,7 +41,7 @@ export default function CompaniesPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState('name-asc');
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const limit = 10;
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [availableEditors, setAvailableEditors] = useState<
@@ -136,7 +136,7 @@ export default function CompaniesPage() {
         });
         if (!r.ok) throw new Error((await r.json()).error || 'Erro ao atualizar empresa');
         if (user && old) {
-          const changes: Record<string, { old: any; new: any }> = {};
+          const changes: Record<string, { old: unknown; new: unknown }> = {};
           if (old.name !== formData.name) changes.name = { old: old.name, new: formData.name };
           if (old.description !== formData.description)
             changes.description = { old: old.description, new: formData.description };

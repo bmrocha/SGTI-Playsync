@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 import { Layers, Plus, Pencil, Trash2, Search } from 'lucide-react';
 import { notifyError, notifySuccess } from '@/lib/notification-store';
 import { ConfirmModal, useConfirm } from '@/components/modals/confirm-modal';
@@ -16,7 +15,6 @@ interface Sector {
 }
 
 export default function SectorsPage() {
-  const router = useRouter();
   const { confirm, confirmProps } = useConfirm();
   const [sectors, setSectors] = useState<Sector[]>([]);
   const [loading, setLoading] = useState(true);

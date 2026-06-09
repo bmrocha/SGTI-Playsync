@@ -7,29 +7,12 @@ import { AnalyticsFilters } from '@/components/analytics/analytics-filters';
 import { ViewChart } from '@/components/analytics/view-chart';
 import { MediaChart } from '@/components/analytics/media-chart';
 import { DistributionChart } from '@/components/analytics/distribution-chart';
-import { generateCSV, triggerPrint } from '@/lib/report-generator';
-import {
-  TrendingUp,
-  Play,
-  Clock,
-  Folder,
-  Building2,
-  FileDown,
-  Printer,
-  Loader2,
-} from 'lucide-react';
+import { TrendingUp, Play, Clock, Folder, Building2, Loader2 } from 'lucide-react';
 
 export default function AnalyticsPage() {
   const { companies, fetchData: fetchStoreData } = useAppStore();
-  const {
-    getFilteredStats,
-    getTopPlaylists,
-    getCompanyStats,
-    fetchAnalytics,
-    isLoading,
-    dateRange,
-    error,
-  } = useAnalyticsStore();
+  const { getFilteredStats, getTopPlaylists, fetchAnalytics, isLoading, error } =
+    useAnalyticsStore();
 
   // Fetch data on mount
   useEffect(() => {
@@ -59,20 +42,6 @@ export default function AnalyticsPage() {
     const minutes = Math.floor((seconds % 3600) / 60);
     if (hours > 0) return `${hours}h ${minutes}m`;
     return `${minutes}m`;
-  };
-
-  const handleExportCSV = () => {
-    if (!filteredEvents || filteredEvents.length === 0) return;
-
-    const data = filteredEvents.map((e) => ({
-      'Data/Hora': new Date(e.timestamp).toLocaleString('pt-BR'),
-      Mídia: e.mediaName,
-      'Duração (s)': e.duration,
-      Empresa: e.companyName,
-      Playlist: e.playlistName,
-    }));
-
-    generateCSV(data, `relatorio_analitico_${new Date().toISOString().split('T')[0]}.csv`);
   };
 
   return (

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/lib/auth-store';
 import { useConfirm, ConfirmModal } from '@/components/modals/confirm-modal';
@@ -31,7 +31,7 @@ interface Playlist {
   name: string;
   description?: string;
   companies: { id: string; name: string; color: string }[];
-  items: any[];
+  items: Array<Record<string, unknown>>;
 }
 
 export default function PlaylistsPage() {
@@ -60,14 +60,17 @@ export default function PlaylistsPage() {
   const debouncedSearch = useDebounce(searchTerm, 500);
   const [sortBy, setSortBy] = useState('name-asc');
 
-  const [viewCompaniesModal, setViewCompaniesModal] = useState<{ isOpen: boolean; playlist: any }>({
+  const [viewCompaniesModal, setViewCompaniesModal] = useState<{
+    isOpen: boolean;
+    playlist: Playlist | null;
+  }>({
     isOpen: false,
     playlist: null,
   });
 
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -107,11 +110,11 @@ export default function PlaylistsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, limit, debouncedSearch, companyNameFilter, companies]);
 
   useEffect(() => {
     fetchData();
-  }, [page, debouncedSearch]);
+  }, [page, debouncedSearch, companyNameFilter]);
 
   const handleCreatePlaylist = async (name: string, companyIds: string[], sectorIds: string[]) => {
     try {
@@ -200,12 +203,12 @@ export default function PlaylistsPage() {
     router.push(`/dashboard/editor?playlistId=${playlistId}`);
   };
 
-  const handleSettings = (playlist: any) => {
+  const handleSettings = (playlist: Playlist) => {
     setSettingsPlaylistId(playlist.id);
     setIsSettingsModalOpen(true);
   };
 
-  const handleViewCompanies = (playlist: any) => {
+  const handleViewCompanies = (playlist: Playlist) => {
     setViewCompaniesModal({ isOpen: true, playlist });
   };
 
