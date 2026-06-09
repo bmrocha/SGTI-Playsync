@@ -33,7 +33,7 @@ export function Sidebar() {
   const { user, logout } = useAuthStore();
   const { isSidebarCollapsed, toggleSidebar } = useUIStore();
   const { theme } = useThemeStore();
-  const { systemName, logoSidebarUrl } = useSystemStore();
+  const { systemName, logoSidebarUrl, showPlayersMenu } = useSystemStore();
 
   const navigation = [
     { name: 'Visão Geral', href: '/dashboard', icon: Home },
@@ -61,6 +61,7 @@ export function Sidebar() {
       href: '/dashboard/players',
       icon: Monitor,
       permission: Permission.VIEW_PLAYER,
+      hidden: !showPlayersMenu,
     },
     {
       name: 'Analytics',
@@ -161,6 +162,7 @@ export function Sidebar() {
               (item) =>
                 !item.permission || (user && hasPermission(user.role as UserRole, item.permission)),
             )
+            .filter((item) => !item.hidden)
             .map((item: any) => {
               const isExactActive = pathname === item.href;
               const isSubRouteActive = item.href !== '/dashboard' && pathname.startsWith(item.href);

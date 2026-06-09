@@ -389,6 +389,7 @@ export function UserFormModal({
       isOpen={isOpen}
       onClose={onClose}
       title={editingUserId ? 'Editar Usuário' : 'Novo Usuário'}
+      maxWidth="max-w-3xl"
       footer={
         <>
           <button
