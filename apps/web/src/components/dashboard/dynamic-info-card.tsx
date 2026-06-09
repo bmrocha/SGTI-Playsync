@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Activity, Tv, TrendingUp, Clock, AlertCircle, CheckCircle } from 'lucide-react';
+import { Tv, Building2, TrendingUp, Clock, CheckCircle } from 'lucide-react';
 
 interface InfoItem {
   icon: React.ReactNode;
@@ -16,8 +16,6 @@ export function DynamicInfoCard() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [stats, setStats] = useState({
     playlists: 0,
-    screens: 0,
-    onlineScreens: 0,
     companies: 0,
   });
   const [loading, setLoading] = useState(true);
@@ -30,8 +28,6 @@ export function DynamicInfoCard() {
           const data = await response.json();
           setStats({
             playlists: data.playlists || 0,
-            screens: data.screens || 0,
-            onlineScreens: data.onlineScreens || 0,
             companies: data.companies || 0,
           });
         }
@@ -53,14 +49,6 @@ export function DynamicInfoCard() {
       subtitle: 'playlists configuradas',
       color: 'text-brand-main',
       bgColor: 'bg-brand-main/10',
-    },
-    {
-      icon: <Monitor className="w-5 h-5" />,
-      title: 'Telas Online',
-      value: `${stats.onlineScreens}/${stats.screens}`,
-      subtitle: stats.onlineScreens === stats.screens ? 'todas operacionais' : 'telas ativas',
-      color: 'text-emerald-500',
-      bgColor: 'bg-emerald-500/10',
     },
     {
       icon: <Building2 className="w-5 h-5" />,
@@ -158,5 +146,3 @@ export function DynamicInfoCard() {
     </div>
   );
 }
-
-import { Monitor, Building2 } from 'lucide-react';

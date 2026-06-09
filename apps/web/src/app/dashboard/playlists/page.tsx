@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/lib/auth-store';
 import { useConfirm, ConfirmModal } from '@/components/modals/confirm-modal';
@@ -14,6 +14,7 @@ import { notifyError, notifySuccess } from '@/lib/notification-store';
 import { PageHeader } from '@/components/playlists/page-header';
 import { FiltersBar } from '@/components/playlists/filters-bar';
 import { PlaylistCard } from '@/components/playlists/playlist-card';
+import type { Playlist } from '@/components/playlists/playlist-card';
 import { EmptyState } from '@/components/playlists/empty-state';
 import { CreatePlaylistModal } from '@/components/playlists/create-playlist-modal';
 import { ViewCompaniesModal } from '@/components/playlists/view-companies-modal';
@@ -23,14 +24,6 @@ interface Company {
   name: string;
   description?: string;
   color: string;
-}
-
-interface Playlist {
-  id: string;
-  name: string;
-  description?: string;
-  companies: { id: string; name: string; color: string }[];
-  items: any[];
 }
 
 export default function PlaylistsPage() {
@@ -59,12 +52,15 @@ export default function PlaylistsPage() {
   const debouncedSearch = useDebounce(searchTerm, 500);
   const [sortBy, setSortBy] = useState('name-asc');
 
-  const [viewCompaniesModal, setViewCompaniesModal] = useState<{ isOpen: boolean; playlist: any }>({
+  const [viewCompaniesModal, setViewCompaniesModal] = useState<{
+    isOpen: boolean;
+    playlist: Playlist | null;
+  }>({
     isOpen: false,
     playlist: null,
   });
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -104,11 +100,11 @@ export default function PlaylistsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, debouncedSearch, companyNameFilter, limit]);
 
   useEffect(() => {
     fetchData();
-  }, [page, debouncedSearch]);
+  }, [fetchData]);
 
   const handleCreatePlaylist = async (name: string, companyIds: string[], sectorIds: string[]) => {
     try {
@@ -132,8 +128,9 @@ export default function PlaylistsPage() {
         logPlaylistCreated(user.id, user.name, user.role, name, companyNames);
       }
 
-      await fetchData();
       setIsCreateModalOpen(false);
+      // Reset to page 1 - this will trigger useEffect to refresh data
+      setPage(1);
       notifySuccess('Playlist Criada', `Playlist "${name}" criada com sucesso!`);
     } catch (error) {
       console.error('Error creating playlist:', error);
@@ -163,7 +160,8 @@ export default function PlaylistsPage() {
             logPlaylistDeleted(user.id, user.name, user.role, playlistName);
           }
 
-          await fetchData();
+          // Reset to page 1 - this will trigger useEffect to refresh data
+          setPage(1);
           notifySuccess('Playlist Excluída', `Playlist "${playlistName}" excluída com sucesso.`);
         } catch (error) {
           console.error('Error deleting playlist:', error);
@@ -197,12 +195,12 @@ export default function PlaylistsPage() {
     router.push(`/dashboard/editor?playlistId=${playlistId}`);
   };
 
-  const handleSettings = (playlist: any) => {
+  const handleSettings = (playlist: Playlist) => {
     setSettingsPlaylistId(playlist.id);
     setIsSettingsModalOpen(true);
   };
 
-  const handleViewCompanies = (playlist: any) => {
+  const handleViewCompanies = (playlist: Playlist) => {
     setViewCompaniesModal({ isOpen: true, playlist });
   };
 

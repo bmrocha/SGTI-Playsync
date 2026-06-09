@@ -16,7 +16,6 @@ import {
   Archive,
   Menu,
   ChevronsLeft,
-  Monitor,
   Shield,
   Layers,
 } from 'lucide-react';

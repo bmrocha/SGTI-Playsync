@@ -3,8 +3,42 @@
 import { Tv, Trash2, Edit, Settings, Eye } from 'lucide-react';
 import Image from 'next/image';
 import { Permission, hasPermission, UserRole } from '@/lib/permissions';
+import type { User } from '@/lib/auth-store';
 
-function PlaylistPreview({ items }: { items: any[] }) {
+export interface PlaylistZone {
+  type?: string;
+  url?: string;
+  name?: string;
+  [key: string]: unknown;
+}
+
+export interface PlaylistItemDetail {
+  id: string;
+  zones?: PlaylistZone[];
+  layout?: string;
+  type?: string;
+  url?: string;
+  name?: string;
+  [key: string]: unknown;
+}
+
+export interface PlaylistCompany {
+  id: string;
+  name: string;
+  color: string;
+}
+
+export interface Playlist {
+  id: string;
+  name: string;
+  description?: string;
+  companies: PlaylistCompany[];
+  items: PlaylistItemDetail[];
+  activePlayers?: number;
+  [key: string]: unknown;
+}
+
+function PlaylistPreview({ items }: { items: PlaylistItemDetail[] }) {
   if (items.length === 0) return null;
 
   const firstItem = items[0];
@@ -36,14 +70,14 @@ function PlaylistPreview({ items }: { items: any[] }) {
     <div className="mb-3 laptop:mb-4 rounded-lg overflow-hidden border border-border bg-black aspect-video">
       {hasZones ? (
         <div className={`w-full h-full grid ${getPreviewGridClass()} gap-0.5`}>
-          {firstItem.zones?.map((zone: any, idx: number) => {
+          {firstItem.zones?.map((zone: PlaylistZone, idx: number) => {
             const isSplit = layout?.startsWith('split') && idx === 0;
             return (
               <div
                 key={idx}
                 className={`relative bg-gray-900 overflow-hidden ${isSplit ? 'row-span-2' : ''}`}
               >
-                {zone?.type === 'image' && (
+                {zone?.type === 'image' && zone.url && (
                   <Image
                     src={zone.url}
                     alt={zone.name || 'Zone content'}
@@ -68,7 +102,7 @@ function PlaylistPreview({ items }: { items: any[] }) {
         </div>
       ) : (
         <div className="w-full h-full relative overflow-hidden">
-          {firstItem.type === 'image' && (
+          {firstItem.type === 'image' && firstItem.url && (
             <Image
               src={firstItem.url}
               alt={firstItem.name || 'Playlist item'}
@@ -79,7 +113,7 @@ function PlaylistPreview({ items }: { items: any[] }) {
               style={{ transform: `rotate(${firstItem.rotation || 0}deg)` }}
             />
           )}
-          {firstItem.type === 'video' && (
+          {firstItem.type === 'video' && firstItem.url && (
             <video
               src={firstItem.url}
               className="w-full h-full object-cover"
@@ -102,19 +136,19 @@ function PlaylistPreview({ items }: { items: any[] }) {
 }
 
 interface PlaylistCardProps {
-  playlist: any;
-  user: any;
-  companies: any[];
+  playlist: Playlist;
+  user: User | null;
+  companies: PlaylistCompany[];
   onEdit: (id: string) => void;
   onDelete: (id: string, name: string) => void;
-  onSettings: (playlist: any) => void;
-  onViewCompanies: (playlist: any) => void;
+  onSettings: (playlist: Playlist) => void;
+  onViewCompanies: (playlist: Playlist) => void;
 }
 
 export function PlaylistCard({
   playlist,
   user,
-  companies,
+  companies: _companies,
   onEdit,
   onDelete,
   onSettings,
@@ -128,7 +162,7 @@ export function PlaylistCard({
         <div className="flex -space-x-2 mr-3 laptop:mr-4 shrink-0 group/companies relative">
           {associatedCompanies.length > 0 ? (
             <>
-              {associatedCompanies.slice(0, 3).map((comp: any, i: number) => (
+              {associatedCompanies.slice(0, 3).map((comp: PlaylistCompany, i: number) => (
                 <div
                   key={comp.id}
                   className="w-8 h-8 laptop:w-10 laptop:h-10 rounded-full flex items-center justify-center text-sm laptop:text-lg shadow-md border-2 border-panel-bg relative transition-transform hover:scale-110 hover:z-20"
@@ -198,7 +232,7 @@ export function PlaylistCard({
       </p>
 
       {playlist.activePlayers && playlist.activePlayers > 0 && (
-        <div className="flex items-center gap-1.5 text-xs text-emerald-500 bg-emerald-500/10 px-2.5 py-1.5 rounded-md border border-emerald-500/20 inline-block self-start">
+        <div className="flex items-center gap-1.5 text-xs text-emerald-500 bg-emerald-500/10 px-2.5 py-1.5 rounded-md border border-emerald-500/20">
           <Eye className="w-3.5 h-3.5" />
           <span className="font-bold">{playlist.activePlayers}</span>
           <span className="text-text-light/70">
