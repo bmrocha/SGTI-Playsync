@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { X, Link2, Copy, Check, Sun, Moon, Loader2, Save, ShieldAlert, Eye } from 'lucide-react';
 import { MediaItem } from '@/lib/store';
 import { usePlaylistLinkStore } from '@/lib/playlist-link-store';
-import { notifySuccess, notifyError } from '@/lib/notification-store';
 import { useThemeStore } from '@/lib/theme-store';
 import { cn } from '@/lib/utils';
 import { FullscreenPlayer } from '@/components/player/fullscreen-player';
@@ -84,6 +83,7 @@ export function LinkGeneratorModal({
         setServerHost(currentHost);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Update link when host or ID changes
@@ -137,6 +137,7 @@ export function LinkGeneratorModal({
       })
       .catch((e) => console.error('Error initializing link:', e))
       .finally(() => setIsInitializing(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   const safeCount = items.filter((i) => !i.url.startsWith('blob:')).length;

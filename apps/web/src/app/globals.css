@@ -278,12 +278,12 @@ input[type='checkbox'] {
 @media (max-width: 1366px) {
   /* Optimize spacing for compact screens */
   .dashboard-container {
-    padding: 0.5rem !important;
+    padding: 0.25rem !important;
   }
 
   /* Optimize card spacing */
   .card-spacing {
-    gap: 0.75rem !important;
+    gap: 0.5rem !important;
   }
 
   /* Adjust heading sizes */
@@ -293,6 +293,18 @@ input[type='checkbox'] {
 
   h1.text-2xl {
     font-size: 1.25rem !important;
+  }
+
+  /* Allow content to scroll naturally instead of being constrained */
+  .dashboard-content-wrapper {
+    height: auto !important;
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+
+  /* Reduce padding on main container for low height */
+  .flex-1.overflow-hidden.bg-body-bg.dashboard-container {
+    overflow-y: auto !important;
   }
 }
 
@@ -305,7 +317,7 @@ input[type='checkbox'] {
 
 /* Full-height content wrapper */
 .dashboard-content-wrapper {
-  max-height: var(--content-max-height);
+  height: 100%;
   overflow-y: auto;
   overflow-x: hidden;
 }

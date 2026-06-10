@@ -16,7 +16,7 @@ export default function DashboardPage() {
   }, [fetchData]);
 
   return (
-    <div className="py-2 laptop:py-3 desktop:py-4 px-3 sm:px-4 laptop:px-5 desktop:px-6 flex flex-col gap-2 laptop:gap-3 desktop:gap-4 w-full animate-fadeIn h-full overflow-hidden">
+    <div className="py-2 laptop:py-3 desktop:py-4 px-3 sm:px-4 laptop:px-5 desktop:px-6 flex flex-col gap-2 laptop:gap-3 desktop:gap-4 w-full animate-fadeIn h-full overflow-auto">
       {/* Top Row: KPIs (Full Width) - Slightly smaller height */}
       <div className="w-full shrink-0">
         <DashboardKPIGrid />
