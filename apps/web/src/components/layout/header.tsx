@@ -43,8 +43,11 @@ export function Header() {
 
   return (
     <div
-      className="flex h-[60px] laptop:h-[60px] shrink-0 items-center justify-between border-b border-border bg-panel-bg px-4 sm:px-6 laptop:px-6 transition-colors duration-300 shadow-sm header-container"
-      style={{ boxShadow: 'var(--shadow-sm)' }}
+      className="flex items-center justify-between border-b border-border bg-panel-bg px-4 sm:px-6 laptop:px-6 transition-colors duration-300 shadow-sm header-container"
+      style={{
+        height: 'var(--header-height)',
+        boxShadow: 'var(--shadow-sm)',
+      }}
     >
       <div className="flex flex-col gap-0.5">
         <span className="text-[0.7rem] laptop:text-[0.7rem] text-text-light font-normal uppercase tracking-widest">

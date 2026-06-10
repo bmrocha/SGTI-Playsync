@@ -1,6 +1,7 @@
 @import 'tailwindcss';
 @custom-variant dark (&:where(.dark, .dark *));
 @import '../styles/animations.css';
+@import '../styles/responsive-utilities.css';
 
 :root,
 .light {
@@ -109,6 +110,8 @@
 
   /* Adjusted to 1280px to ensure it triggers on 1366px screens with scrollbars */
   --breakpoint-laptop: 1280px;
+  --breakpoint-desktop: 1440px;
+  --breakpoint-xl: 1920px;
 
   /* News Ticker Animation - Registered for Dynamic Control */
   --animate-scroll-ticker: scroll-ticker 30s linear infinite;
@@ -226,18 +229,39 @@ input[type='checkbox'] {
 }
 
 /* ========================================
-   RESPONSIVE DESIGN - 1366x768 & LARGER
+   RESPONSIVE DESIGN - 1366x768 BASE
+   Scales up for larger screens
    ======================================== */
+
+/* Base: 1366x768 (default settings) */
+:root {
+  /* Sidebar dimensions optimized for 1366px width */
+  --sidebar-width-expanded: 220px;
+  --sidebar-width-collapsed: 70px;
+  --header-height: 60px;
+}
+
+/* Medium screens (1440p and up) */
+@media (min-width: 1440px) {
+  :root {
+    --sidebar-width-expanded: 250px;
+    --sidebar-width-collapsed: 75px;
+    --header-height: 64px;
+  }
+}
+
+/* Large screens (1920p and up) */
+@media (min-width: 1920px) {
+  :root {
+    --sidebar-width-expanded: 280px;
+    --sidebar-width-collapsed: 80px;
+    --header-height: 68px;
+  }
+}
 
 /* Small laptop screens (1366x768 and similar) */
 @media (max-width: 1366px) {
-  :root {
-    --sidebar-width-expanded: 220px;
-    --sidebar-width-collapsed: 70px;
-    --header-height: 60px;
-  }
-
-  /* Reduce overall padding and spacing */
+  /* Optimize spacing for compact screens */
   .dashboard-container {
     padding: 0.5rem !important;
   }
@@ -247,7 +271,7 @@ input[type='checkbox'] {
     gap: 0.75rem !important;
   }
 
-  /* Adjust font sizes for smaller screens */
+  /* Adjust heading sizes */
   h1.text-3xl {
     font-size: 1.5rem !important;
   }
@@ -281,11 +305,11 @@ input[type='checkbox'] {
 /* 1366x768 Responsiveness Tweaks */
 @media (min-width: 1024px) and (max-height: 800px) {
   .modal-content-compact {
-    padding: 1rem !important; /* p-4 */
-    gap: 1rem !important; /* gap-4 */
+    padding: 1rem !important;
+    gap: 1rem !important;
   }
   .modal-header-compact {
-    padding: 1rem !important; /* p-4 */
+    padding: 1rem !important;
   }
   .modal-grid-compact {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
