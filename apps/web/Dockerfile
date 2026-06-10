@@ -10,13 +10,22 @@ FROM base AS deps
 COPY package.json ./
 COPY apps/web/package.json ./apps/web/
 COPY packages/database/package.json ./packages/database/
+
+# Use BuildKit cache for npm and turbo
 RUN --mount=type=cache,target=/root/.npm \
+  --mount=type=cache,target=/app/.turbo \
   npm install --prefer-offline --no-audit --no-fund --workspaces
 
 # ─────────────────────────────────────────────
 # builder — compile Next.js + bundle DB scripts
 # ─────────────────────────────────────────────
 FROM base AS builder
+
+# Increase Node.js memory for faster builds
+ENV NODE_OPTIONS=--max-old-space-size=4096
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_OUTPUT_STANDALONE=true
+ENV TURBO_TELEMETRY_DISABLED=1
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/package.json ./package.json
@@ -30,13 +39,13 @@ COPY apps/web ./apps/web
 COPY packages/database/src ./packages/database/src
 COPY packages/database/package.json ./packages/database/
 
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV NEXT_OUTPUT_STANDALONE=true
-
+# Build with optimized settings
 RUN npm run build -w apps/web
 
 # Bundle DB scripts for runner stage (standalone .js files)
-RUN mkdir -p apps/web/dist-scripts && \
+# Use esbuild cache for faster rebuilds
+RUN --mount=type=cache,target=/root/.cache/esbuild \
+  mkdir -p apps/web/dist-scripts && \
   ./node_modules/.bin/esbuild packages/database/src/db/migrate.ts --bundle --platform=node --outfile=apps/web/dist-scripts/migrate.js --format=esm --external:pg-native && \
   ./node_modules/.bin/esbuild packages/database/src/db/seed.ts --bundle --platform=node --outfile=apps/web/dist-scripts/seed.js --format=esm --external:pg-native && \
   cp packages/database/src/db/schema.sql apps/web/dist-scripts/

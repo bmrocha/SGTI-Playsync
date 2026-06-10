@@ -27,3 +27,36 @@ Dockerfile
 docker-compose.yml
 docker-compose*.yml
 README.md
+
+# Additional exclusions for faster builds
+backups/
+.husky/
+*.md
+!apps/web/README.md
+CHANGELOG.md
+PENDENCIAS.md
+deploy-guide.html
+
+# Test files
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+__tests__/
+test/
+tests/
+
+# Documentation
+docs/
+**.mdx
+
+# Development tools
+*.swp
+*.swo
+*~
+
+# Package manager locks (keep only root)
+**/package-lock.json
+!package-lock.json
+**/yarn.lock
+**/pnpm-lock.yaml

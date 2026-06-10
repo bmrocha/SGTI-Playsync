@@ -193,15 +193,17 @@ export default function SystemSettingsPage() {
   }, [updateMetrics]);
 
   // Estado Original para Comparação
-  const [originalSettings, setOriginalSettings] = useState<any>(null);
+  const [originalSettings, setOriginalSettings] = useState<Partial<Record<string, unknown>> | null>(
+    null,
+  );
 
   // Sync local maintenance toggle ONLY when original settings are loaded or updated via Save
   // This prevents the background polling from reverting local changes before the user clicks Save
   useEffect(() => {
     if (originalSettings) {
-      setIsMaintenanceModeLocal(originalSettings.isMaintenanceMode);
-      setMaintenanceScopeLocal(originalSettings.maintenanceScope ?? 'site');
-      setMaintenancePagesLocal(originalSettings.maintenancePages ?? []);
+      setIsMaintenanceModeLocal(originalSettings.isMaintenanceMode as boolean);
+      setMaintenanceScopeLocal((originalSettings.maintenanceScope as 'site' | 'pages') ?? 'site');
+      setMaintenancePagesLocal((originalSettings.maintenancePages as string[]) ?? []);
     }
   }, [originalSettings]);
 
@@ -240,7 +242,7 @@ export default function SystemSettingsPage() {
           auditLogRetention: String(state.auditLogRetention || '90'),
           isPasswordComplexityEnforced: Boolean(state.isPasswordComplexityEnforced ?? true),
           isDebugMode: Boolean(state.isDebugMode ?? false),
-          logLevel: (state.logLevel as any) || 'info',
+          logLevel: (state.logLevel as 'info' | 'debug' | 'error') || 'info',
           storageLimit: Number(state.storageLimit || 500),
           mediaCacheSize: Number(state.mediaCacheSize || 1024),
           hardwareAccel: Boolean(state.hardwareAccel ?? true),
@@ -317,7 +319,9 @@ export default function SystemSettingsPage() {
       restrictIP: String(originalSettings.restrictIP).trim(),
       trusted_ips: String(originalSettings.trusted_ips || '').trim(),
       uploadLimit: String(originalSettings.uploadLimit).trim(),
-      uploadLimitVideo: String((originalSettings as any).uploadLimitVideo || '1024').trim(),
+      uploadLimitVideo: String(
+        (originalSettings as Record<string, unknown>).uploadLimitVideo || '1024',
+      ).trim(),
       mediaQuality: String(originalSettings.mediaQuality),
       autoPlayVideos: Boolean(originalSettings.autoPlayVideos),
       webhookUrl: String(originalSettings.webhookUrl).trim(),
@@ -325,11 +329,11 @@ export default function SystemSettingsPage() {
       maintenanceEstimatedTime: String(originalSettings.maintenanceEstimatedTime).trim(),
       maintenancePriority: String(originalSettings.maintenancePriority).trim(),
       isMaintenanceMode: Boolean(originalSettings.isMaintenanceMode ?? false),
-      maintenanceScope: (originalSettings as any).maintenanceScope ?? 'site',
+      maintenanceScope: (originalSettings as Record<string, unknown>).maintenanceScope ?? 'site',
       maintenancePages: JSON.stringify(
         [
-          ...(Array.isArray((originalSettings as any).maintenancePages)
-            ? (originalSettings as any).maintenancePages
+          ...(Array.isArray((originalSettings as Record<string, unknown>).maintenancePages)
+            ? ((originalSettings as Record<string, unknown>).maintenancePages as string[])
             : []),
         ].sort(),
       ),
@@ -349,12 +353,12 @@ export default function SystemSettingsPage() {
       isOfflineSyncEnabled: Boolean(originalSettings.isOfflineSyncEnabled ?? true),
     };
 
-    const differences: Record<string, { current: any; original: any }> = {};
+    const differences: Record<string, { current: unknown; original: unknown }> = {};
     let differs = false;
 
     Object.keys(currentSettings).forEach((key) => {
-      const curVal = (currentSettings as any)[key];
-      const origVal = (originalNormalized as any)[key];
+      const curVal = (currentSettings as Record<string, unknown>)[key];
+      const origVal = (originalNormalized as Record<string, unknown>)[key];
       if (curVal !== origVal) {
         differences[key] = { current: curVal, original: origVal };
         differs = true;
@@ -378,6 +382,7 @@ export default function SystemSettingsPage() {
     cleanDays,
     sessionLimit,
     restrictIP,
+    trusted_ips,
     uploadLimit,
     uploadLimitVideo,
     mediaQuality,
@@ -497,7 +502,7 @@ export default function SystemSettingsPage() {
           auditLogRetention: String(data.auditLogRetention || '90'),
           isPasswordComplexityEnforced: Boolean(data.isPasswordComplexityEnforced ?? true),
           isDebugMode: Boolean(data.isDebugMode ?? false),
-          logLevel: (data.logLevel as any) || 'info',
+          logLevel: (data.logLevel as 'info' | 'debug' | 'error') || 'info',
           storageLimit: Number(data.storageLimit || 500),
           mediaCacheSize: Number(data.mediaCacheSize || 1024),
           hardwareAccel: Boolean(data.hardwareAccel ?? true),
@@ -509,7 +514,7 @@ export default function SystemSettingsPage() {
         };
 
         Object.entries(initialData).forEach(([key, value]) => {
-          setField(key as any, value);
+          setField(key as keyof typeof initialData, value);
         });
         setOriginalSettings(initialData);
         notifySuccess(
@@ -519,7 +524,7 @@ export default function SystemSettingsPage() {
       } else {
         notifyError('Erro ao salvar no servidor.', 'As configurações não foram aplicadas');
       }
-    } catch (error) {
+    } catch {
       notifyError('Erro de conexão com o servidor.', 'Verifique sua conexão de rede');
     }
     setIsLoading(false);
@@ -531,7 +536,7 @@ export default function SystemSettingsPage() {
       const res = await fetch('/api/system/cache/clear', { method: 'POST' });
       if (!res.ok) throw new Error('Falha ao limpar cache');
       notifySuccess('Cache do sistema limpo com sucesso!', 'Dados temporários foram removidos');
-    } catch (error) {
+    } catch {
       notifyError('Erro ao limpar cache do sistema.', 'Tente novamente mais tarde');
     }
     setIsOptimizing(false);
@@ -605,7 +610,7 @@ export default function SystemSettingsPage() {
           <button
             onClick={handleSave}
             disabled={isLoading || !hasChanges}
-            className={`min-w-[150px] px-5 py-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-2.5 font-black group h-10 relative overflow-hidden  ${
+            className={`min-w-37.5 px-5 py-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-2.5 font-black group h-10 relative overflow-hidden  ${
               hasChanges
                 ? 'bg-emerald-600 text-white shadow-[0_4px_15px_rgba(5,150,105,0.4)] hover:bg-emerald-700 hover:scale-[1.03] active:scale-95 cursor-pointer'
                 : 'bg-gray-100 dark:bg-white/5 text-gray-400 dark:text-gray-500 cursor-not-allowed opacity-50'
@@ -627,7 +632,7 @@ export default function SystemSettingsPage() {
             </div>
 
             {hasChanges && (
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:animate-shimmer pointer-events-none z-10" />
+              <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer pointer-events-none z-10" />
             )}
           </button>
         </div>
@@ -696,34 +701,40 @@ export default function SystemSettingsPage() {
         {/* Tab Content */}
         <div className="flex-1 overflow-hidden pr-4 flex flex-col h-full">
           <div className="flex-1 h-full flex flex-col overflow-hidden">
-            <SettingsMidiaTab
-              isOptimizing={isOptimizing}
-              integrity={integrity}
-              onClearCache={handleClearCache}
-              onCheckIntegrity={handleCheckIntegrity}
-            />
+            {activeTab === 'midia' && (
+              <SettingsMidiaTab
+                isOptimizing={isOptimizing}
+                integrity={integrity}
+                onClearCache={handleClearCache}
+                onCheckIntegrity={handleCheckIntegrity}
+              />
+            )}
 
-            <SettingsSegurancaTab isMaintenanceModeLocal={isMaintenanceModeLocal} />
+            {activeTab === 'seguranca' && (
+              <SettingsSegurancaTab isMaintenanceModeLocal={isMaintenanceModeLocal} />
+            )}
 
-            <SettingsInfraTab
-              telemetry={telemetry}
-              uptimeLabel={uptimeLabel}
-              cpuPercent={cpuPercent}
-              memUsedGb={memUsedGb}
-              memUsedPercent={memUsedPercent}
-              storageUsedPercent={storageUsedPercent}
-              storageLimitLabel={storageLimitLabel}
-              dbStatusLabel={dbStatusLabel}
-              dbLatencyLabel={dbLatencyLabel}
-              isMaintenanceModeLocal={isMaintenanceModeLocal}
-              maintenanceScopeLocal={maintenanceScopeLocal}
-              maintenancePagesLocal={maintenancePagesLocal}
-              setIsMaintenanceModeLocal={setIsMaintenanceModeLocal}
-              setMaintenanceScopeLocal={setMaintenanceScopeLocal}
-              setMaintenancePagesLocal={setMaintenancePagesLocal}
-            />
+            {activeTab === 'infra' && (
+              <SettingsInfraTab
+                telemetry={telemetry}
+                uptimeLabel={uptimeLabel}
+                cpuPercent={cpuPercent}
+                memUsedGb={memUsedGb}
+                memUsedPercent={memUsedPercent}
+                storageUsedPercent={storageUsedPercent}
+                storageLimitLabel={storageLimitLabel}
+                dbStatusLabel={dbStatusLabel}
+                dbLatencyLabel={dbLatencyLabel}
+                isMaintenanceModeLocal={isMaintenanceModeLocal}
+                maintenanceScopeLocal={maintenanceScopeLocal}
+                maintenancePagesLocal={maintenancePagesLocal}
+                setIsMaintenanceModeLocal={setIsMaintenanceModeLocal}
+                setMaintenanceScopeLocal={setMaintenanceScopeLocal}
+                setMaintenancePagesLocal={setMaintenancePagesLocal}
+              />
+            )}
 
-            <SettingsSistemaTab />
+            {activeTab === 'sistema' && <SettingsSistemaTab />}
           </div>
         </div>
       </div>

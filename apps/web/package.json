@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev -H 0.0.0.0",
-    "prebuild": "node -e \"const fs=require('fs');const p='.next/cache/webpack';fs.existsSync(p)&&fs.rmSync(p,{recursive:true,force:true})&&console.log('cache limpo')\"",
+    "dev": "next dev -H 0.0.0.0 --turbo",
     "build": "next build",
+    "build:analyze": "ANALYZE=true next build",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit"

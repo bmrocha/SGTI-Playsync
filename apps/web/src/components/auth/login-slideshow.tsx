@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Tv, Layers } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -11,9 +11,9 @@ interface Slide {
 }
 
 interface LoginSlideshowProps {
-  currentSlide: number;
-  onNext: () => void;
-  onPrev: () => void;
+  currentSlide?: number;
+  onNext?: () => void;
+  onPrev?: () => void;
 }
 
 const slides: Slide[] = [
@@ -48,35 +48,63 @@ const slides: Slide[] = [
   },
 ];
 
-export function LoginSlideshow({ currentSlide, onNext, onPrev }: LoginSlideshowProps) {
-  // Auto-rotate slides every 5 seconds
+export function LoginSlideshow({
+  currentSlide: externalSlide,
+  onNext,
+  onPrev,
+}: LoginSlideshowProps) {
+  // Internal state for self-contained auto-rotation
+  const [internalSlide, setInternalSlide] = useState(0);
+
+  // Use external slide if provided, otherwise use internal state
+  const slideIndex = externalSlide !== undefined ? externalSlide : internalSlide;
+
+  // Stable next/prev handlers using useCallback
+  const handleNext = useCallback(() => {
+    if (onNext) {
+      onNext();
+    } else {
+      setInternalSlide((prev) => (prev + 1) % slides.length);
+    }
+  }, [onNext]);
+
+  const handlePrev = useCallback(() => {
+    if (onPrev) {
+      onPrev();
+    } else {
+      setInternalSlide((prev) => (prev - 1 + slides.length) % slides.length);
+    }
+  }, [onPrev]);
+
+  // Auto-rotate slides every 4 seconds - only depends on stable handleNext
   useEffect(() => {
     const interval = setInterval(() => {
-      onNext();
-    }, 5000);
+      handleNext();
+    }, 4000);
 
     return () => clearInterval(interval);
-  }, [onNext]);
+  }, [handleNext]);
 
   return (
     <div className="max-w-md">
       <div className="p-8 bg-white/40 dark:bg-zinc-900/30 backdrop-blur-xl border border-emerald-500/10 dark:border-white/5 rounded-[2.5rem] relative group space-y-6 shadow-sm dark:shadow-none transition-all duration-500">
         <AnimatePresence mode="wait">
           <motion.div
-            key={currentSlide}
-            initial={{ opacity: 0, x: -10 }}
+            key={slideIndex}
+            initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 10 }}
+            exit={{ opacity: 0, x: -20 }}
+            transition={{ duration: 0.4, ease: 'easeInOut' }}
             className="space-y-4"
           >
             <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center border border-emerald-500/20 text-emerald-400">
-              {slides[currentSlide].icon}
+              {slides[slideIndex].icon}
             </div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight transition-colors">
-              {slides[currentSlide].title}
+              {slides[slideIndex].title}
             </h3>
             <p className="text-slate-600 dark:text-zinc-500 text-sm leading-relaxed transition-colors">
-              {slides[currentSlide].description}
+              {slides[slideIndex].description}
             </p>
           </motion.div>
         </AnimatePresence>
@@ -86,19 +114,19 @@ export function LoginSlideshow({ currentSlide, onNext, onPrev }: LoginSlideshowP
             {slides.map((_, idx) => (
               <div
                 key={idx}
-                className={`h-1 rounded-full transition-all duration-300 ${idx === currentSlide ? 'w-6 bg-emerald-500' : 'w-2 bg-slate-200 dark:bg-zinc-800'}`}
+                className={`h-1 rounded-full transition-all duration-300 ${idx === slideIndex ? 'w-6 bg-emerald-500' : 'w-2 bg-slate-200 dark:bg-zinc-800'}`}
               />
             ))}
           </div>
           <div className="flex gap-2">
             <button
-              onClick={onPrev}
+              onClick={handlePrev}
               className="p-2 hover:bg-emerald-500/5 dark:hover:bg-white/5 rounded-lg transition-colors text-slate-400 dark:text-zinc-500 hover:text-emerald-600 dark:hover:text-emerald-400"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
             <button
-              onClick={onNext}
+              onClick={handleNext}
               className="p-2 hover:bg-emerald-500/5 dark:hover:bg-white/5 rounded-lg transition-colors text-slate-400 dark:text-zinc-500 hover:text-emerald-600 dark:hover:text-emerald-400"
             >
               <ChevronRight className="w-4 h-4" />

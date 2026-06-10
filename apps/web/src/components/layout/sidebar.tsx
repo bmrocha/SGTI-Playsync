@@ -1,5 +1,4 @@
 'use client';
-import { useState, useEffect } from 'react';
 import Image from 'next/image';
 
 import Link from 'next/link';
@@ -11,9 +10,7 @@ import {
   Tv,
   TrendingUp,
   Users,
-  Activity,
   Archive,
-  Menu,
   ChevronsLeft,
   Monitor,
   Shield,
@@ -24,13 +21,11 @@ import { useAuthStore } from '@/lib/auth-store';
 import { useUIStore } from '@/lib/ui-store';
 import { useThemeStore } from '@/lib/theme-store';
 import { useSystemStore } from '@/lib/system-store';
-import { useRouter } from 'next/navigation';
 import { UserRole, Permission, hasPermission } from '@/lib/permissions';
 
 export function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
-  const { user, logout } = useAuthStore();
+  const { user } = useAuthStore();
   const { isSidebarCollapsed, toggleSidebar } = useUIStore();
   const { theme } = useThemeStore();
   const { systemName, logoSidebarUrl, showPlayersMenu } = useSystemStore();
@@ -86,9 +81,9 @@ export function Sidebar() {
   return (
     <div
       className={cn(
-        'flex h-full flex-col border-r text-white transition-all duration-300 shadow-2xl z-50 relative',
-        isSidebarCollapsed ? 'w-17.5 laptop:w-[70px]' : 'w-[240px] laptop:w-[220px]',
-        theme === 'dark' ? 'backdrop-blur-[12px]' : '',
+        'flex h-full flex-col border-r transition-all duration-300 shadow-2xl z-50 relative',
+        isSidebarCollapsed ? 'w-17.5 laptop:w-17.5' : 'w-60 laptop:w-55',
+        theme === 'dark' ? 'backdrop-blur-md text-white' : 'text-slate-800',
       )}
       style={{
         background:
@@ -101,10 +96,11 @@ export function Sidebar() {
       {/* Header Section with Toggle */}
       <div
         className={cn(
-          'flex shrink-0 items-center border-b border-white/25 mb-2 transition-all duration-300 relative sidebar-header',
+          'flex shrink-0 items-center border-b mb-2 transition-all duration-300 relative sidebar-header',
+          theme === 'dark' ? 'border-white/25' : 'border-slate-200',
           isSidebarCollapsed
-            ? 'h-[60px] laptop:h-[60px] justify-center flex-col gap-1'
-            : 'h-[60px] laptop:h-[60px] px-4 laptop:px-4',
+            ? 'h-15 laptop:h-15 justify-center flex-col gap-1'
+            : 'h-15 laptop:h-15 px-4 laptop:px-4',
         )}
       >
         {/* Logo Area */}
@@ -136,7 +132,11 @@ export function Sidebar() {
                     ? systemName.split(' ')[0]
                     : 'Play'}
               </span>
-              <span className="font-black tracking-tighter text-white/40 leading-none drop-shadow-lg text-xl laptop:text-lg transition-all">
+              <span
+                className={`font-black tracking-tighter leading-none drop-shadow-lg text-xl laptop:text-lg transition-all ${
+                  theme === 'dark' ? 'text-white/40' : 'text-slate-400'
+                }`}
+              >
                 {systemName === 'PlaySync'
                   ? 'Sync'
                   : systemName && systemName.includes(' ')
@@ -147,7 +147,11 @@ export function Sidebar() {
           )}
 
           {isSidebarCollapsed && !logoSidebarUrl && (
-            <span className="font-black tracking-tight text-brand-accent text-xl">
+            <span
+              className={`font-black tracking-tight text-xl ${
+                theme === 'dark' ? 'text-brand-accent' : 'text-brand-main'
+              }`}
+            >
               {systemName ? systemName.charAt(0) : 'P'}
             </span>
           )}
@@ -163,7 +167,7 @@ export function Sidebar() {
                 !item.permission || (user && hasPermission(user.role as UserRole, item.permission)),
             )
             .filter((item) => !item.hidden)
-            .map((item: any) => {
+            .map((item) => {
               const isExactActive = pathname === item.href;
               const isSubRouteActive = item.href !== '/dashboard' && pathname.startsWith(item.href);
               const isAliasActive = item.aliases?.some((alias: string) =>
@@ -182,8 +186,12 @@ export function Sidebar() {
                       ? 'justify-center p-3 laptop:p-2.5'
                       : 'gap-x-4 laptop:gap-x-3 p-3 laptop:p-2.5',
                     isActive
-                      ? 'bg-white/20 text-white font-black backdrop-blur-md shadow-[inset_4px_0_0_0_#d4ff00]'
-                      : 'text-white/85 hover:bg-white/10 hover:text-white',
+                      ? theme === 'dark'
+                        ? 'bg-white/20 text-white font-black backdrop-blur-md shadow-[inset_4px_0_0_0_#d4ff00]'
+                        : 'bg-brand-main/10 text-brand-main font-black shadow-[inset_4px_0_0_0_var(--bg-main)]'
+                      : theme === 'dark'
+                        ? 'text-white/85 hover:bg-white/10 hover:text-white'
+                        : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
                   )}
                 >
                   <item.icon
@@ -211,7 +219,8 @@ export function Sidebar() {
       {/* Bottom Section */}
       <div
         className={cn(
-          'mt-auto border-t border-white/25 shrink-0',
+          'mt-auto shrink-0',
+          theme === 'dark' ? 'border-t border-white/25' : 'border-t border-slate-200',
           isSidebarCollapsed ? 'p-2 space-y-2' : 'p-4 space-y-2',
         )}
       >
@@ -228,8 +237,12 @@ export function Sidebar() {
                 ? 'justify-center p-3 laptop:p-2.5'
                 : 'gap-x-4 laptop:gap-x-3 p-3 laptop:p-2.5',
               pathname.startsWith('/dashboard/users')
-                ? 'bg-white/20 text-white font-black shadow-[inset_4px_0_0_0_#d4ff00] backdrop-blur-md'
-                : 'text-white/85 hover:bg-white/10 hover:text-white',
+                ? theme === 'dark'
+                  ? 'bg-white/20 text-white font-black shadow-[inset_4px_0_0_0_#d4ff00] backdrop-blur-md'
+                  : 'bg-brand-main/10 text-brand-main font-black shadow-[inset_4px_0_0_0_var(--bg-main)]'
+                : theme === 'dark'
+                  ? 'text-white/85 hover:bg-white/10 hover:text-white'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
             )}
           >
             <Users
@@ -260,8 +273,12 @@ export function Sidebar() {
                 ? 'justify-center p-3 laptop:p-2.5'
                 : 'gap-x-4 laptop:gap-x-3 p-3 laptop:p-2.5',
               pathname.startsWith('/dashboard/settings')
-                ? 'bg-white/20 text-white font-black shadow-[inset_4px_0_0_0_#d4ff00] backdrop-blur-md'
-                : 'text-white/85 hover:bg-white/10 hover:text-white',
+                ? theme === 'dark'
+                  ? 'bg-white/20 text-white font-black shadow-[inset_4px_0_0_0_#d4ff00] backdrop-blur-md'
+                  : 'bg-brand-main/10 text-brand-main font-black shadow-[inset_4px_0_0_0_var(--bg-main)]'
+                : theme === 'dark'
+                  ? 'text-white/85 hover:bg-white/10 hover:text-white'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
             )}
           >
             <Settings
@@ -287,7 +304,7 @@ export function Sidebar() {
       <button
         onClick={toggleSidebar}
         className={cn(
-          'absolute -right-4 top-[18px] z-[10000] group sidebar-toggle',
+          'absolute -right-4 top-4.5 z-10000 group sidebar-toggle',
           'h-8 w-8 rounded-full flex items-center justify-center cursor-pointer',
           'transition-all duration-500 ease-out hover:scale-110 active:scale-95',
 
@@ -296,7 +313,7 @@ export function Sidebar() {
 
           // DARK MODE (Elite Emerald Style)
           'dark:bg-[#0a1a17]/80 dark:backdrop-blur-md',
-          'dark:border-[var(--bg-main)] dark:border-opacity-50',
+          'dark:border-brand-main dark:border-opacity-50',
           'dark:text-[#d4ff00] dark:hover:text-[#e5ff60]',
           'dark:shadow-[0_0_15px_rgba(17,135,109,0.3)] dark:hover:shadow-[0_0_20px_rgba(212,255,0,0.2)]',
         )}

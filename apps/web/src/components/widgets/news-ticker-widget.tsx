@@ -156,16 +156,16 @@ export function NewsTickerWidget({ config, className }: NewsTickerWidgetProps) {
     >
       {/* Ambient background glow */}
       {hasCustomColors ? (
-        <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-foreground/30 to-transparent" />
+        <div className="absolute inset-x-0 bottom-0 h-px bg-linear-to-r from-transparent via-foreground/30 to-transparent" />
       ) : (
-        <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-brand-main/40 to-transparent shadow-[0_-4px_12px_rgb(var(--bg-main-rgb)/0.25)]" />
+        <div className="absolute inset-x-0 bottom-0 h-px bg-linear-to-r from-transparent via-brand-main/40 to-transparent shadow-[0_-4px_12px_rgb(var(--bg-main-rgb)/0.25)]" />
       )}
 
       {/* Time Badge - Minimal & Technical */}
       {config.showClock !== false && (
         <div
           className={cn(
-            'flex items-center flex-shrink-0 border-r',
+            'flex items-center shrink-0 border-r',
             hasCustomColors ? 'border-white/20' : 'border-brand-main/20 dark:border-white/10',
             density === 'compact' ? 'gap-2 py-0.5 pr-4' : 'gap-3 py-1 pr-6',
           )}
@@ -195,7 +195,7 @@ export function NewsTickerWidget({ config, className }: NewsTickerWidgetProps) {
       {/* News Ticker Label - Small & Sharp */}
       <div
         className={cn(
-          'font-black uppercase tracking-[0.2em] flex-shrink-0 pr-2 border-r flex items-center',
+          'font-black uppercase tracking-[0.2em] shrink-0 pr-2 border-r flex items-center',
           hasCustomColors
             ? 'border-white/20'
             : 'text-brand-main border-brand-main/20 dark:border-white/10',

@@ -8,8 +8,9 @@
   ],
   "scripts": {
     "dev": "npm run dev -w apps/web",
-    "prebuild": "npm run prebuild -w apps/web",
     "build": "npm run build -w apps/web",
+    "build:optimized": "NODE_OPTIONS=--max-old-space-size=4096 NEXT_TELEMETRY_DISABLED=1 npm run build -w apps/web",
+    "build:analyze": "npm run build:analyze -w apps/web",
     "start": "npm run start -w apps/web",
     "lint": "npm run lint -w apps/web",
     "db:migrate": "npm run migrate -w packages/database",
