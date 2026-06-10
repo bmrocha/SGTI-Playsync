@@ -192,7 +192,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 />
               ) : (
                 <div className="flex-1 overflow-hidden bg-body-bg dashboard-container">
-                  {children}
+                  <div className="dashboard-content-wrapper h-full">{children}</div>
                 </div>
               )}
             </ErrorBoundary>

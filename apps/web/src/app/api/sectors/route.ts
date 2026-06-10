@@ -38,7 +38,14 @@ export async function GET(request: NextRequest) {
     }
 
     const sectors = await SectorRepository.findAll(filterCompanyId);
-    return NextResponse.json({ sectors });
+    const formattedSectors = sectors.map((s) => ({
+      id: s.id,
+      name: s.name,
+      description: s.description,
+      companyId: s.company_id,
+      createdAt: s.created_at,
+    }));
+    return NextResponse.json({ sectors: formattedSectors });
   } catch (error) {
     logger.error({ err: error }, 'Error fetching sectors:');
     return NextResponse.json({ error: 'Erro ao buscar setores' }, { status: 500 });

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { MediaItem } from '@/lib/store';
 import { X, Moon, Pause } from 'lucide-react';
 import { getLayoutConfig } from '@/lib/layouts';
@@ -58,15 +58,15 @@ export function FullscreenPlayer({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [loopCount, setLoopCount] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted] = useState(false);
   const [showControls, setShowControls] = useState(true);
-  const [stage, setStage] = useState<{ width: number; height: number } | null>(null);
+
   const { trackMediaPlay } = useAnalyticsStore();
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     onClose();
     setIsPaused(false);
-  };
+  }, [onClose]);
 
   useEffect(() => {
     if (isOpen && items.length > 0) {
@@ -80,17 +80,6 @@ export function FullscreenPlayer({
       setValidItems([]);
     }
   }, [isOpen, items]);
-
-  useEffect(() => {
-    const updateStage = () => {
-      if (typeof window !== 'undefined') {
-        setStage({ width: window.innerWidth, height: window.innerHeight });
-      }
-    };
-    updateStage();
-    window.addEventListener('resize', updateStage);
-    return () => window.removeEventListener('resize', updateStage);
-  }, []);
 
   useEffect(() => {
     let timeout: ReturnType<typeof setTimeout>;
@@ -148,6 +137,7 @@ export function FullscreenPlayer({
     playlistId,
     companyName,
     playlistName,
+    trackMediaPlay,
   ]);
 
   useEffect(() => {
@@ -158,7 +148,7 @@ export function FullscreenPlayer({
       window.addEventListener('keydown', handleKeyDown);
     }
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen]);
+  }, [isOpen, handleClose]);
 
   if (!isOpen) return null;
 
@@ -166,7 +156,7 @@ export function FullscreenPlayer({
     return (
       <div
         className={cn(
-          'fixed inset-0 z-9999 flex items-center justify-center transition-colors duration-500',
+          'fixed inset-0 z-9999 overflow-hidden transition-colors duration-500',
           theme === 'dark' ? 'bg-black' : 'bg-white',
           !showControls && 'cursor-none',
         )}
@@ -445,7 +435,7 @@ export function FullscreenPlayer({
     <div
       ref={rootRef}
       className={cn(
-        'fixed inset-0 z-9999 flex items-center justify-center transition-colors duration-500',
+        'fixed inset-0 z-9999 overflow-hidden transition-colors duration-500',
         theme === 'dark' ? 'dark bg-black' : 'light bg-white',
         !showControls && 'cursor-none',
       )}
@@ -482,16 +472,12 @@ export function FullscreenPlayer({
         <X className="w-5 h-5" /> SAIR (ESC)
       </button>
 
-      <div className="relative w-full h-full z-0 flex items-center justify-center">
+      <div className="relative w-full h-full z-0">
         <div
           className={cn(
-            'relative overflow-hidden transition-colors duration-500 border-white/10 dark:border-white/5',
+            'absolute inset-0 overflow-hidden transition-colors duration-500',
             theme === 'dark' ? 'bg-black' : 'bg-white',
           )}
-          style={{
-            width: stage ? `${stage.width}px` : '100%',
-            height: stage ? `${stage.height}px` : '100%',
-          }}
         >
           {template ? (
             <LayoutRenderer

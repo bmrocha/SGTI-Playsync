@@ -199,9 +199,7 @@ export default function SectorsPage() {
                   </td>
                   <td className="px-4 py-3">
                     <span className="text-xs text-text-light">
-                      {sector.createdAt
-                        ? new Date(sector.createdAt).toLocaleDateString('pt-BR')
-                        : '—'}
+                      {sector.createdAt ? new Date(sector.createdAt).toLocaleString('pt-BR') : '—'}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">

@@ -127,6 +127,15 @@ body {
   width: 100%;
 }
 
+/* Prevent scrollbars when fullscreen player is active */
+body:has(.fixed.z-9999) {
+  overflow: hidden !important;
+}
+
+html:has(.fixed.z-9999) {
+  overflow: hidden !important;
+}
+
 /* Global Checkbox Accent Color - Theme Consistent */
 input[type='checkbox'] {
   accent-color: var(--bg-main);
@@ -239,6 +248,8 @@ input[type='checkbox'] {
   --sidebar-width-expanded: 220px;
   --sidebar-width-collapsed: 70px;
   --header-height: 60px;
+  --content-max-width: 1366px;
+  --content-max-height: 768px;
 }
 
 /* Medium screens (1440p and up) */
@@ -247,6 +258,8 @@ input[type='checkbox'] {
     --sidebar-width-expanded: 250px;
     --sidebar-width-collapsed: 75px;
     --header-height: 64px;
+    --content-max-width: 1440px;
+    --content-max-height: 900px;
   }
 }
 
@@ -256,6 +269,8 @@ input[type='checkbox'] {
     --sidebar-width-expanded: 280px;
     --sidebar-width-collapsed: 80px;
     --header-height: 68px;
+    --content-max-width: 1920px;
+    --content-max-height: 1080px;
   }
 }
 
@@ -279,6 +294,20 @@ input[type='checkbox'] {
   h1.text-2xl {
     font-size: 1.25rem !important;
   }
+}
+
+/* Dashboard Container - Responsive max-width centered */
+.dashboard-container {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Full-height content wrapper */
+.dashboard-content-wrapper {
+  max-height: var(--content-max-height);
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 /* Low height screens (768px and below) */
