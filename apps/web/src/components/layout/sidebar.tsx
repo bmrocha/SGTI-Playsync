@@ -125,7 +125,7 @@ export function Sidebar() {
 
           {!isSidebarCollapsed && (
             <div className="flex items-center gap-0.5 translate-y-0.5">
-              <span className="font-black tracking-tighter text-brand-accent leading-none drop-shadow-lg text-xl laptop:text-lg transition-all">
+              <span className="font-black tracking-tighter leading-none drop-shadow-lg text-xl laptop:text-lg transition-all text-brand-main dark:text-brand-accent">
                 {systemName === 'PlaySync'
                   ? 'Play'
                   : systemName

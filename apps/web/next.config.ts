@@ -37,6 +37,28 @@ const nextConfig: NextConfig = {
         headers: [{ key: 'Access-Control-Allow-Origin', value: '*' }],
       },
       {
+        // Allow internal routes to be embedded in iframes
+        source: '/dashboard/:path*',
+        headers: [
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          {
+            key: 'Content-Security-Policy',
+            value: "frame-ancestors 'self' *;",
+          },
+        ],
+      },
+      {
+        // Allow API routes to be embedded in iframes
+        source: '/api/:path*',
+        headers: [
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          {
+            key: 'Content-Security-Policy',
+            value: "frame-ancestors 'self' *;",
+          },
+        ],
+      },
+      {
         // Apply security headers to all routes
         source: '/:path*',
         headers: [
@@ -45,13 +67,13 @@ const nextConfig: NextConfig = {
             key: 'Strict-Transport-Security',
             value: 'max-age=63072000; includeSubDomains; preload',
           },
-          { key: 'X-Frame-Options', value: '' },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'Referrer-Policy', value: 'origin-when-cross-origin' },
           {
             key: 'Content-Security-Policy',
             value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.youtube.com https://s.ytimg.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self' data:; media-src 'self' blob: data: https:; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https:; connect-src 'self' https:;",
+              "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.youtube.com https://s.ytimg.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self' data:; media-src 'self' blob: data: https:; frame-src 'self' http://localhost:* https://www.youtube.com https://www.youtube-nocookie.com https: data:; connect-src 'self' https:; frame-ancestors 'self' *;",
           },
         ],
       },
@@ -62,7 +84,7 @@ const nextConfig: NextConfig = {
   },
 
   // Ignore data folder changes to prevent dev server restarts
-  webpack: (config, { dev, isServer }) => {
+  webpack: (config, { dev, isServer: _isServer }) => {
     // Optimize build in production
     if (!dev) {
       // Enable webpack cache
@@ -85,8 +107,9 @@ const nextConfig: NextConfig = {
             // Vendor chunk for node_modules
             lib: {
               test: /[\\/]node_modules[\\/]/,
-              name(module: any) {
-                return `vendor.${module.context.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/)?.[1]}`;
+              name(module: { context: string | null }) {
+                const context = module.context?.match(/[\\/]node_modules[\\/](.*?)([\\/]|$)/)?.[1];
+                return context ? `vendor.${context}` : 'vendor.unknown';
               },
               chunks: 'all',
               priority: 40,

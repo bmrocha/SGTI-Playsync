@@ -50,7 +50,7 @@ export function Header() {
       }}
     >
       <div className="flex flex-col gap-0.5">
-        <span className="text-[0.7rem] laptop:text-[0.7rem] text-text-light font-normal uppercase tracking-widest">
+        <span className="text-[0.7rem] laptop:text-[0.7rem] text-brand-main/70 dark:text-brand-accent/70 font-semibold uppercase tracking-widest">
           PLAYSYNC
         </span>
         <span className="text-[1rem] sm:text-[1.1rem] laptop:text-base text-brand-main font-bold m-0">

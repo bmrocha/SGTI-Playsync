@@ -1,6 +1,5 @@
 'use client';
 
-import { LicenseStatusCard } from '@/components/settings/license-status-card';
 import { useSystemStore } from '@/lib/system-store';
 import { Monitor } from 'lucide-react';
 
@@ -9,8 +8,6 @@ export default function SettingsSistemaTab() {
 
   return (
     <div className="space-y-4 animate-fadeIn pb-40 flex flex-col h-full overflow-y-auto pr-2 scrollbar-hide">
-      <LicenseStatusCard />
-
       {/* Menu Visibility Settings */}
       <div className="bg-white/50 dark:bg-zinc-900/20 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] p-6 space-y-6">
         <div className="flex items-center gap-3 mb-4">

@@ -8,8 +8,9 @@ import SettingsMidiaTab from '@/components/settings/settings-midia-tab';
 import SettingsSegurancaTab from '@/components/settings/settings-seguranca-tab';
 import SettingsInfraTab from '@/components/settings/settings-infra-tab';
 import SettingsSistemaTab from '@/components/settings/settings-sistema-tab';
+import SettingsLicenciamentoTab from '@/components/settings/settings-licenciamento-tab';
 
-type TabType = 'midia' | 'seguranca' | 'infra' | 'sistema';
+type TabType = 'midia' | 'seguranca' | 'infra' | 'licenciamento' | 'sistema';
 
 export default function SystemSettingsPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -577,6 +578,13 @@ export default function SystemSettingsPage() {
       bg: 'bg-emerald-500/10',
     },
     {
+      id: 'licenciamento',
+      label: 'Licenciamento',
+      icon: KeyRound,
+      color: 'text-emerald-500',
+      bg: 'bg-emerald-500/10',
+    },
+    {
       id: 'sistema',
       label: 'Sistema',
       icon: KeyRound,
@@ -724,6 +732,8 @@ export default function SystemSettingsPage() {
                 setMaintenancePagesLocal={setMaintenancePagesLocal}
               />
             )}
+
+            {activeTab === 'licenciamento' && <SettingsLicenciamentoTab />}
 
             {activeTab === 'sistema' && <SettingsSistemaTab />}
           </div>
