@@ -174,7 +174,7 @@ export function LicenseStatusCard() {
         <div className="bg-emerald-500/5 dark:bg-emerald-500/5 border border-emerald-500/20 rounded-4xl p-6 space-y-4">
           <div className="flex items-center justify-between">
             <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-              {ls.mode === 'jwt' ? 'Chave P\u00fablica Configurada' : 'Modo de Licen\u00e7a'}
+              {ls.mode === 'jwt' ? 'Chave Pública Configurada' : 'Modo de Licença'}
             </p>
             {publicKeyPem && (
               <button

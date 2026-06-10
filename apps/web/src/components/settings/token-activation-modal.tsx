@@ -67,7 +67,7 @@ export function TokenActivationModal({ open, onOpenChange, installationId, onAct
           </div>
           <div>
             <h2 className="text-lg font-black text-white tracking-tight">
-              Aplicar Token de Licen\u00e7a
+              Aplicar Token de Licença
             </h2>
             <p className="text-zinc-500 text-xs">Cole o token JWT (RS256) enviado pelo suporte.</p>
           </div>
@@ -87,12 +87,12 @@ export function TokenActivationModal({ open, onOpenChange, installationId, onAct
                   try {
                     await navigator.clipboard.writeText(installationId);
                     setCopied(true);
-                    notifySuccess('Copiado!', 'Token copiado para \u00e1rea de transfer\u00eancia');
+                    notifySuccess('Copiado!', 'Token copiado para área de transferência');
                     setTimeout(() => setCopied(false), 2000);
                   } catch {
                     notifyError(
                       'Falha ao copiar',
-                      'N\u00e3o foi poss\u00edvel copiar o token para \u00e1rea de transfer\u00eancia',
+                      'Não foi possível copiar o token para área de transferência',
                     );
                   }
                 }}
@@ -110,7 +110,7 @@ export function TokenActivationModal({ open, onOpenChange, installationId, onAct
           <div className="space-y-2">
             <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500/80 flex items-center gap-2">
               <KeyRound className="w-3.5 h-3.5" />
-              Token de Licen\u00e7a (JWT)
+              Token de Licença (JWT)
             </label>
             <textarea
               value={token}

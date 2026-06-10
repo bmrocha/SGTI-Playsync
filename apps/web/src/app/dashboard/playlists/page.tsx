@@ -10,7 +10,7 @@ import { Permission, hasPermission, UserRole } from '@/lib/permissions';
 import { Pagination } from '@/components/ui/pagination';
 import { useDebounce } from '@/hooks/use-debounce';
 import { notifyError, notifySuccess } from '@/lib/notification-store';
-import { Grid, List } from 'lucide-react';
+import { Grid, List, Link2 } from 'lucide-react';
 
 import { PageHeader } from '@/components/playlists/page-header';
 import { FiltersBar } from '@/components/playlists/filters-bar';
@@ -323,6 +323,9 @@ export default function PlaylistsPage() {
                   <th className="text-left px-4 py-3 text-xs font-bold text-text-light uppercase tracking-wider">
                     Mídias
                   </th>
+                  <th className="text-left px-4 py-3 text-xs font-bold text-text-light uppercase tracking-wider">
+                    Links
+                  </th>
                   <th className="text-right px-4 py-3 text-xs font-bold text-text-light uppercase tracking-wider">
                     Ações
                   </th>
@@ -341,6 +344,19 @@ export default function PlaylistsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <span className="text-sm text-text-light">{pl.items.length} mídias</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {(pl as any).sharingLinks > 0 ? (
+                        <span
+                          className="inline-flex items-center gap-1 text-sm text-brand-main"
+                          title={`${(pl as any).sharingLinks} link(s) de compartilhamento ativo(s)`}
+                        >
+                          <Link2 className="w-3.5 h-3.5" />
+                          {(pl as any).sharingLinks}
+                        </span>
+                      ) : (
+                        <span className="text-sm text-text-light">—</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-2">

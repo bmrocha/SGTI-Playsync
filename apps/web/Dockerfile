@@ -1,11 +1,11 @@
 # syntax=docker/dockerfile:1
-FROM node:22-alpine3.19 AS base
+FROM node:22-alpine AS base
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# ─────────────────────────────────────────────
-# deps — install ALL dependencies (incl. dev)
-# ─────────────────────────────────────────────
+
+# deps install ALL dependencies (incl. dev)
+
 FROM base AS deps
 COPY package.json ./
 COPY apps/web/package.json ./apps/web/
@@ -16,9 +16,9 @@ RUN --mount=type=cache,target=/root/.npm \
   --mount=type=cache,target=/app/.turbo \
   npm install --prefer-offline --no-audit --no-fund --workspaces
 
-# ─────────────────────────────────────────────
-# builder — compile Next.js + bundle DB scripts
-# ─────────────────────────────────────────────
+
+# builder compile Next.js + bundle DB scripts
+
 FROM base AS builder
 
 # Increase Node.js memory for faster builds
@@ -53,9 +53,9 @@ RUN --mount=type=cache,target=/root/.cache/esbuild \
 # Remove dev dependencies so runner image stays lean
 RUN npm prune --omit=dev --no-audit --no-fund --workspaces
 
-# ─────────────────────────────────────────────
-# runner — production image
-# ─────────────────────────────────────────────
+
+# runner  production image
+
 FROM base AS runner
 
 ENV NODE_ENV=production

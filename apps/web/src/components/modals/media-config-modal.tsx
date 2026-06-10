@@ -123,6 +123,10 @@ export function MediaConfigModal({
     if (isOpen) {
       const currentId = initialItem?.id || 'new';
 
+      // Always reset to content tab when opening modal
+      setActiveTab('content');
+      localStorage.removeItem('mediaConfigActiveTab');
+
       // Only initialize if we haven't initialized this specific item yet
       if (!isInitialized || lastItemIdRef.current !== currentId) {
         if (initialItem) {

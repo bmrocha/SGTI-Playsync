@@ -1,6 +1,6 @@
 import { requireLicense } from '@/lib/license-service';
 import { NextRequest, NextResponse } from 'next/server';
-import { PlaylistRepository, SectorRepository } from '@playsync/database';
+import { PlaylistRepository, SectorRepository, PlaylistLinkRepository } from '@playsync/database';
 import { getCurrentUser } from '@/lib/server-auth';
 import { z } from 'zod';
 import { Permission, hasPermission, UserRole } from '@/lib/permissions';
@@ -51,8 +51,19 @@ export async function GET(request: NextRequest) {
       allowedPlaylistIds,
     );
 
+    // Add sharing link count to each playlist
+    const playlistsWithLinkCount = await Promise.all(
+      playlists.map(async (playlist) => {
+        const linkCount = await PlaylistLinkRepository.countByPlaylistId(playlist.id);
+        return {
+          ...playlist,
+          sharingLinks: linkCount,
+        };
+      }),
+    );
+
     return NextResponse.json({
-      playlists,
+      playlists: playlistsWithLinkCount,
       pagination: {
         total,
         page,
