@@ -45,10 +45,13 @@ export function LicenseStatusCard() {
       try {
         await navigator.clipboard.writeText(text);
         setter(true);
-        notifySuccess(msg || 'Copiado!', 'Chave copiada para área de transferência');
+        notifySuccess(msg || 'Copiado!', 'Chave copiada para \u00e1rea de transfer\u00eancia');
         setTimeout(() => setter(false), 2000);
       } catch {
-        notifyError('Falha ao copiar', 'Não foi possível copiar para área de transferência');
+        notifyError(
+          'Falha ao copiar',
+          'N\u00e3o foi poss\u00edvel copiar para \u00e1rea de transfer\u00eancia',
+        );
       }
     },
     [],
@@ -56,7 +59,7 @@ export function LicenseStatusCard() {
 
   if (loading) {
     return (
-      <div className="bg-emerald-500/5 dark:bg-emerald-500/5 border border-emerald-500/20 rounded-[2rem] p-8">
+      <div className="bg-emerald-500/5 dark:bg-emerald-500/5 border border-emerald-500/20 rounded-4xl p-8">
         <div className="flex items-center justify-center py-12">
           <div className="w-6 h-6 border-2 border-zinc-400 border-t-transparent rounded-full animate-spin" />
         </div>
@@ -87,7 +90,7 @@ export function LicenseStatusCard() {
             <p className="text-text-light dark:text-white/40 font-bold uppercase tracking-widest text-[9px] mt-1 pl-0.5">
               {ls.mode === 'jwt'
                 ? 'Licenciamento via token JWT com assinatura RS256'
-                : 'Licenciamento não configurado'}
+                : 'Licenciamento n\u00e3o configurado'}
             </p>
           </div>
         </div>
@@ -99,7 +102,7 @@ export function LicenseStatusCard() {
             Installation ID
           </p>
           <p className="text-sm font-bold mt-2 text-text-dark dark:text-white break-all">
-            {status?.installationId || '—'}
+            {status?.installationId || '\u2014'}
           </p>
           <div className="mt-3 flex items-center gap-2">
             <button
@@ -129,11 +132,15 @@ export function LicenseStatusCard() {
             </div>
             <div>
               <p className="text-sm font-bold text-text-dark dark:text-white">
-                {ls.active ? 'Ativo' : ls.reason === 'NOT_ACTIVATED' ? 'Não ativado' : 'Inativo'}
+                {ls.active
+                  ? 'Ativo'
+                  : ls.reason === 'NOT_ACTIVATED'
+                    ? 'N\u00e3o ativado'
+                    : 'Inativo'}
               </p>
               <p className="text-[10px] text-zinc-400 font-bold mt-0.5">
                 Modo: {ls.mode.toUpperCase()}{' '}
-                {ls.active ? `• Restante: ${ls.remainingDays} dias` : ''}
+                {ls.active ? `\u2022 Restante: ${ls.remainingDays} dias` : ''}
               </p>
             </div>
           </div>
@@ -141,18 +148,18 @@ export function LicenseStatusCard() {
 
         <div className="p-5 rounded-2xl bg-emerald-500/5 dark:bg-emerald-500/5 border border-emerald-500/20">
           <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-            Janela de Licença
+            Janela de Licen\u00e7a
           </p>
           <p className="text-[11px] text-zinc-400 mt-2">
             Ativada em:{' '}
             <span className="font-bold text-text-dark dark:text-white">
-              {status?.appliedAt ? formatDate(status.appliedAt) : '—'}
+              {status?.appliedAt ? formatDate(status.appliedAt) : '\u2014'}
             </span>
           </p>
           <p className="text-[11px] text-zinc-400 mt-1">
             Expira em:{' '}
             <span className="font-bold text-text-dark dark:text-white">
-              {status?.expiresAt ? formatDate(status.expiresAt) : '—'}
+              {status?.expiresAt ? formatDate(status.expiresAt) : '\u2014'}
             </span>
           </p>
           {status?.expiresAt && ls.active && (
@@ -164,10 +171,10 @@ export function LicenseStatusCard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-emerald-500/5 dark:bg-emerald-500/5 border border-emerald-500/20 rounded-[2rem] p-6 space-y-4">
+        <div className="bg-emerald-500/5 dark:bg-emerald-500/5 border border-emerald-500/20 rounded-4xl p-6 space-y-4">
           <div className="flex items-center justify-between">
             <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-              {ls.mode === 'jwt' ? 'Chave Pública Configurada' : 'Modo de Licença'}
+              {ls.mode === 'jwt' ? 'Chave P\u00fablica Configurada' : 'Modo de Licen\u00e7a'}
             </p>
             {publicKeyPem && (
               <button
@@ -187,13 +194,13 @@ export function LicenseStatusCard() {
             />
             <p className="text-[10px] text-zinc-400">
               {ls.mode === 'jwt'
-                ? 'Essa chave está configurada no backend (.env) e é usada para validar a assinatura RS256 dos tokens.'
-                : 'Nenhuma chave pública configurada.'}
+                ? 'Essa chave est\u00e1 configurada no backend (.env) e \u00e9 usada para validar a assinatura RS256 dos tokens.'
+                : 'Nenhuma chave p\u00fablica configurada.'}
             </p>
           </div>
           <div className="pt-4 mt-2 border-t border-zinc-200 dark:border-zinc-700 flex items-center justify-between">
             <p className="text-[10px] text-zinc-400 leading-relaxed max-w-[60%]">
-              A validação RS256 e o bloqueio são aplicados via backend.
+              A valida\u00e7\u00e3o RS256 e o bloqueio s\u00e3o aplicados via backend.
             </p>
             <button
               onClick={() => setTokenModalOpen(true)}
@@ -206,9 +213,9 @@ export function LicenseStatusCard() {
           </div>
         </div>
 
-        <div className="bg-emerald-500/5 dark:bg-emerald-500/5 border border-emerald-500/20 rounded-[2rem] p-6 space-y-4">
+        <div className="bg-emerald-500/5 dark:bg-emerald-500/5 border border-emerald-500/20 rounded-4xl p-6 space-y-4">
           <p className="text-[10px] font-black uppercase tracking-widest text-zinc-400">
-            Suporte e Renovação
+            Suporte e Renova\u00e7\u00e3o
           </p>
           <div className="p-4 rounded-2xl bg-black/10 dark:bg-white/5 border border-zinc-200 dark:border-zinc-700">
             <p className="text-sm font-bold text-text-dark dark:text-white flex items-center gap-2">
@@ -232,29 +239,29 @@ export function LicenseStatusCard() {
 
           <div className="space-y-3">
             <p className="text-sm font-bold text-text-dark dark:text-white">
-              Para gerar/renovar sua licença
+              Para gerar/renovar sua licen\u00e7a
             </p>
             <p className="text-[10px] text-zinc-400 leading-relaxed">
-              Clique em "Copiar" e envie um e-mail para o suporte com o conteúdo colado no corpo da
-              mensagem.
+              Clique em &quot;Copiar&quot; e envie um e-mail para o suporte com o conte\u00fado
+              colado no corpo da mensagem.
             </p>
             <div className="p-4 rounded-2xl bg-black/10 dark:bg-white/5 border border-zinc-200 dark:border-zinc-700 space-y-3">
               <p className="text-[9px] font-black uppercase tracking-widest text-zinc-400">
-                Obrigatório
+                Obrigat\u00f3rio
               </p>
               <button
                 onClick={async () => {
                   if (!status?.installationId) return;
                   if (!publicKeyPem) {
                     notifyError(
-                      'Chave pública indisponível',
-                      'A chave pública solicitada não foi encontrada',
+                      'Chave p\u00fablica indispon\u00edvel',
+                      'A chave p\u00fablica solicitada n\u00e3o foi encontrada',
                     );
                     return;
                   }
                   const msg =
                     `Installation ID: ${status.installationId}\n\n` +
-                    `Chave pública (PUBLIC KEY PEM ou base64):\n${publicKeyPem}\n`;
+                    `Chave p\u00fablica (PUBLIC KEY PEM ou base64):\n${publicKeyPem}\n`;
                   copyToClipboard(msg, setCopiedSupport, 'Dados copiados para suporte');
                 }}
                 disabled={!status?.installationId || !publicKeyPem}
@@ -265,8 +272,10 @@ export function LicenseStatusCard() {
               </button>
               <p className="text-[10px] text-zinc-400 leading-relaxed">
                 Assunto sugerido:{' '}
-                <span className="font-bold text-text-dark dark:text-white">Renovação/Ativação</span>
-                . Destinatário:{' '}
+                <span className="font-bold text-text-dark dark:text-white">
+                  Renova\u00e7\u00e3o/Ativa\u00e7\u00e3o
+                </span>
+                . Destinat\u00e1rio:{' '}
                 <span className="font-bold text-text-dark dark:text-white">
                   suporte@sgti.tec.br
                 </span>

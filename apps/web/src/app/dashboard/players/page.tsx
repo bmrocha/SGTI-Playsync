@@ -22,7 +22,7 @@ export default function PlayersPage() {
   const [players, setPlayers] = useState<Player[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(12); // Grid 3x4 or 4x3
+  const [limit] = useState(12); // Grid 3x4 or 4x3
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebounce(searchQuery, 500);
   const [statusFilter, setStatusFilter] = useState<'all' | 'online' | 'offline'>('all');
@@ -182,7 +182,7 @@ export default function PlayersPage() {
               <CustomSelect
                 value={statusFilter}
                 onChange={(val) => {
-                  setStatusFilter(val as any);
+                  setStatusFilter(val as 'all' | 'online' | 'offline');
                   setPage(1);
                 }}
                 options={[

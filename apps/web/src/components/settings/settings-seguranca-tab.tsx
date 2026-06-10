@@ -11,7 +11,6 @@ import {
   Cpu,
   ShieldAlert,
   History,
-  ChevronRight,
 } from 'lucide-react';
 
 interface Props {
@@ -22,11 +21,7 @@ export default function SettingsSegurancaTab({ isMaintenanceModeLocal }: Props) 
   const {
     isPasswordComplexityEnforced,
     isTwoFactorEnforced,
-    isBruteForceProtection,
     auditLogRetention,
-    sessionLimit,
-    restrictIP,
-    trusted_ips,
     sessions,
     terminateSession,
     setField,

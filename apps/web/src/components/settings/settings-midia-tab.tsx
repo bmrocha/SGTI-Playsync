@@ -1,17 +1,7 @@
 'use client';
 
 import { useSystemStore } from '@/lib/system-store';
-import {
-  Video,
-  HardDrive,
-  Trash2,
-  Loader2,
-  ShieldCheck,
-  Zap,
-  Cpu,
-  Database,
-  Tv,
-} from 'lucide-react';
+import { HardDrive, Trash2, Loader2, ShieldCheck, Zap, Cpu, Database, Tv } from 'lucide-react';
 
 interface Props {
   isOptimizing: boolean;
@@ -22,7 +12,7 @@ interface Props {
 
 export default function SettingsMidiaTab({
   isOptimizing,
-  integrity,
+  integrity: _integrity,
   onClearCache,
   onCheckIntegrity,
 }: Props) {

@@ -8,8 +8,6 @@ import { SystemActivityChart } from '@/components/dashboard/widgets/system-activ
 import { StorageDetailsWidget } from '@/components/dashboard/widgets/storage-details-widget';
 import { useAppStore } from '@/lib/store';
 
-import { LayoutDashboard } from 'lucide-react';
-
 export default function DashboardPage() {
   const { fetchData } = useAppStore();
 

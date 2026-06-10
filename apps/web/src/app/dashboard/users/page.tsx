@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Users,
   Shield,
@@ -9,7 +9,6 @@ import {
   Edit,
   Plus,
   Search,
-  UserCog,
   Key,
   Filter,
   X,
@@ -67,13 +66,32 @@ export default function UsersPage() {
 
   // Pagination state
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [limit] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
 
-  const [users, setUsers] = useState<any[]>([]);
-  const [companies, setCompanies] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  interface UserData {
+    id: string;
+    name: string;
+    email: string;
+    role: UserRole;
+    companyId?: string;
+    company?: { name: string };
+    avatar?: string;
+    createdAt: string | Date;
+    lastLogin?: string | Date;
+    [key: string]: unknown;
+  }
+
+  interface CompanyData {
+    id: string;
+    name: string;
+    [key: string]: unknown;
+  }
+
+  const [users, setUsers] = useState<UserData[]>([]);
+  const [companies, setCompanies] = useState<CompanyData[]>([]);
+  const [, setIsLoading] = useState(true);
   const [resetUserId, setResetUserId] = useState('');
   const [resetUserName, setResetUserName] = useState('');
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
@@ -181,7 +199,7 @@ export default function UsersPage() {
     });
   };
 
-  const handleOpenResetModal = (user: any) => {
+  const handleOpenResetModal = (user: UserData) => {
     setResetUserId(user.id);
     setResetUserName(user.name);
     setIsResetModalOpen(true);

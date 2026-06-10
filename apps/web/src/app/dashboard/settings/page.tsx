@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { Settings, Save, Loader2, ChevronRight, Video, Lock, Server, KeyRound } from 'lucide-react';
+import { Save, Loader2, ChevronRight, Video, Lock, Server, KeyRound } from 'lucide-react';
 import { useSystemStore } from '@/lib/system-store';
 import { notifySuccess, notifyError } from '@/lib/notification-store';
 import SettingsMidiaTab from '@/components/settings/settings-midia-tab';

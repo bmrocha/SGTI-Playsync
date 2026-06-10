@@ -209,8 +209,8 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// DELETE /api/audit/cleanup - Delete logs older than 90 days (Admin only)
-export async function DELETE(_request: NextRequest) {
+// DELETE /api/audit/cleanup - Delete logs older than configured retention period (Admin only)
+export async function DELETE(request: NextRequest) {
   const _lc = await requireLicense();
   if (_lc) return _lc;
   try {
@@ -219,16 +219,32 @@ export async function DELETE(_request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized. Admin only.' }, { status: 401 });
     }
 
-    // Calculate 90 days ago
-    const ninetyDaysAgo = new Date();
-    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+    // Allow custom retention period via query parameter (default 180 days)
+    const { searchParams } = new URL(request.url);
+    const retentionDays = parseInt(searchParams.get('retentionDays') || '180');
+
+    // Validate retention period (min 30 days, max 365 days)
+    if (retentionDays < 30 || retentionDays > 365) {
+      return NextResponse.json(
+        {
+          error: 'Retention period must be between 30 and 365 days',
+        },
+        { status: 400 },
+      );
+    }
+
+    // Calculate cutoff date
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
 
     // Delete old logs
-    const deletedCount = await AuditLogRepository.deleteOlderThan(ninetyDaysAgo);
+    const deletedCount = await AuditLogRepository.deleteOlderThan(cutoffDate);
 
     return NextResponse.json({
-      message: `Deleted ${deletedCount} logs older than 90 days`,
+      message: `Deleted ${deletedCount} logs older than ${retentionDays} days`,
       deletedCount,
+      retentionDays,
+      cutoffDate: cutoffDate.toISOString(),
     });
   } catch (error) {
     logger.error({ err: error }, 'Error cleaning up audit logs:');

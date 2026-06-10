@@ -4,7 +4,6 @@ import { useEffect, useState, useRef } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/auth-store';
 import { useSystemStore } from '@/lib/system-store';
-import { useAppStore } from '@/lib/store';
 import { useThemeStore } from '@/lib/theme-store';
 import { UserRole } from '@/lib/permissions';
 import { Sidebar } from '@/components/layout/sidebar';
@@ -34,7 +33,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     maintenanceEstimatedTime,
     maintenancePriority,
   } = useSystemStore();
-  const { fetchData } = useAppStore();
   const {
     theme: currentTheme,
     primaryColor: currentPrimaryColor,

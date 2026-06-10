@@ -1,11 +1,13 @@
 # Pendências
 
 ## Melhorias de Infraestrutura
+
 - [x] **Rate limiter**: Substituir `Map` in-memory por PostgreSQL (via `RateLimitRepository`)
 - [x] **Refresh token**: Implementado com access token de 1h + refresh token rotativo de 7 dias (armazenado em `sessions.refresh_token`)
 - [x] **`isIpTrusted()`**: Mudado de permit-by-default para deny-by-default
 
 ## Melhorias de Código
+
 - [x] **Audit routes**: Adicionar `logServerAction` em:
   - `api/analytics/report/route.ts`
   - `api/agent/heartbeat/route.ts`
@@ -16,10 +18,10 @@
 - [x] **`companies/page.tsx`**: Os componentes extraídos estão em `src/components/companies/`
 - [x] **`playlists/page.tsx`**: Os componentes extraídos estão em `src/components/playlists/`
 
-- [ ] **Adicionar testes** para as novas rotas de auditoria
 - [ ] **Cleanup automático**: Agendar cron para limpeza periódica de `rate_limits` expirados
 
 ## Observações
+
 - Build passa sem erros após todas as alterações
 - Todas as páginas de dashboard foram refatoradas para usar componentes extraídos
 - Refresh token é rotativo (cada uso gera novo token + novo access token)

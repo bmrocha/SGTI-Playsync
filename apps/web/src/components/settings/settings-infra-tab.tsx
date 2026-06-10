@@ -2,7 +2,6 @@
 
 import { useSystemStore } from '@/lib/system-store';
 import {
-  Server,
   Cpu,
   Activity,
   HardDrive,
@@ -21,7 +20,6 @@ import {
   Archive,
   Shield,
 } from 'lucide-react';
-import { ReactNode } from 'react';
 
 interface InfraTelemetry {
   server: { hostname: string; processUptimeSeconds: number };
@@ -69,7 +67,7 @@ const MAINTENANCE_PAGE_OPTIONS = [
 
 export default function SettingsInfraTab({
   telemetry,
-  uptimeLabel,
+  uptimeLabel: _uptimeLabel,
   cpuPercent,
   memUsedGb,
   memUsedPercent,
@@ -87,7 +85,6 @@ export default function SettingsInfraTab({
   const {
     setField,
     webhookUrl,
-    webhookEvents,
     maintenanceMessage,
     maintenanceEstimatedTime,
     maintenancePriority,
@@ -193,7 +190,7 @@ export default function SettingsInfraTab({
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 pb-24 sm:pb-36">
         {/* Maintenance & DevOps */}
         <div className="space-y-4">
-          <div className="bg-emerald-500/5 dark:bg-emerald-500/5 border border-emerald-500/20 rounded-[2rem] p-6 space-y-4">
+          <div className="bg-emerald-500/5 dark:bg-emerald-500/5 border border-emerald-500/20 rounded-4xl p-6 space-y-4">
             <h3 className="text-xs font-black text-text-dark uppercase tracking-widest flex items-center gap-2">
               <Settings className="w-4 h-4 text-emerald-500" /> Controle de Manutenção
             </h3>
@@ -236,7 +233,7 @@ export default function SettingsInfraTab({
                     <button
                       key={opt.value}
                       type="button"
-                      onClick={() => setMaintenanceScopeLocal(opt.value as any)}
+                      onClick={() => setMaintenanceScopeLocal(opt.value as 'site' | 'pages')}
                       className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase border flex items-center justify-center gap-1.5 transition-all ${
                         isActive
                           ? 'bg-zinc-100 dark:bg-white/10 text-zinc-500 dark:text-zinc-400 border-zinc-400'
@@ -256,7 +253,7 @@ export default function SettingsInfraTab({
                   <span className="block text-[8px] font-black text-zinc-400 uppercase tracking-widest pl-1">
                     Selecione as Páginas
                   </span>
-                  <div className="grid grid-cols-2 gap-1.5 max-h-[160px] overflow-y-auto pr-1 scrollbar-hide">
+                  <div className="grid grid-cols-2 gap-1.5 max-h-40 overflow-y-auto pr-1 scrollbar-hide">
                     {MAINTENANCE_PAGE_OPTIONS.map((optPage) => {
                       const PageIcon = optPage.icon;
                       const isSelected = maintenancePagesLocal.includes(optPage.path);
@@ -279,7 +276,7 @@ export default function SettingsInfraTab({
                         >
                           <div className="flex items-center gap-1.5 animate-fadeIn">
                             <PageIcon className="w-3.5 h-3.5" />
-                            <span className="truncate max-w-[70px]">{optPage.label}</span>
+                            <span className="truncate max-w-17.5">{optPage.label}</span>
                           </div>
                           <div
                             className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center transition-all ${
@@ -335,7 +332,7 @@ export default function SettingsInfraTab({
         </div>
 
         {/* Webhooks & Connectivity */}
-        <div className="bg-emerald-500/5 dark:bg-emerald-500/5 border border-emerald-500/20 rounded-[2rem] p-6 space-y-4">
+        <div className="bg-emerald-500/5 dark:bg-emerald-500/5 border border-emerald-500/20 rounded-4xl p-6 space-y-4">
           <h3 className="text-xs font-black text-text-dark uppercase tracking-widest flex items-center gap-2">
             <Link2 className="w-4 h-4 text-emerald-500" /> Webhooks & Integrações
           </h3>

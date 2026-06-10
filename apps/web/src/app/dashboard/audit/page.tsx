@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useActivityLogStore, ActionType, ActivityLog } from '@/lib/activity-log-store';
 import { useAuthStore } from '@/lib/auth-store';
-import { Shield, Download, Filter } from 'lucide-react';
+import { Shield, Download, Filter, Calendar } from 'lucide-react';
 import { AuditStats } from '@/components/audit/audit-stats';
 import { AuditFilters } from '@/components/audit/audit-filters';
 import { AuditTable } from '@/components/audit/audit-table';
@@ -17,28 +17,33 @@ export default function AuditPage() {
   const [loading, setLoading] = useState(true);
   const [showFilters, setShowFilters] = useState(false);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [showBulkExport, setShowBulkExport] = useState(false);
+  const [bulkExportStartDate, setBulkExportStartDate] = useState('');
+  const [bulkExportEndDate, setBulkExportEndDate] = useState('');
+  const [exporting, setExporting] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedUser, setSelectedUser] = useState('');
+  const selectedUser = '';
   const [selectedAction, setSelectedAction] = useState('');
   const [selectedResource, setSelectedResource] = useState('');
   const [dateRange, setDateRange] = useState('7');
   const [customStartDate, setCustomStartDate] = useState('');
   const [customEndDate, setCustomEndDate] = useState('');
 
-  const cleanIp = (ip: any): string => {
+  const cleanIp = (ip: unknown): string => {
     if (!ip) return '';
     if (typeof ip !== 'string') return String(ip);
     return ip.replace(/::ffff:/g, '').trim();
   };
 
   const getDisplayIp = (log: ActivityLog) => {
-    const meta = log.metadata as any;
+    const meta = log.metadata as Record<string, unknown> | undefined;
+    const headers = meta?.headers as Record<string, unknown> | undefined;
     const raw =
-      meta?.x_forwarded_for ??
-      meta?.['x-forwarded-for'] ??
-      meta?.headers?.x_forwarded_for ??
-      meta?.headers?.['x-forwarded-for'];
+      (meta?.x_forwarded_for as string) ??
+      (meta?.['x-forwarded-for'] as string) ??
+      (headers?.x_forwarded_for as string) ??
+      (headers?.['x-forwarded-for'] as string);
     if (typeof raw === 'string' && raw.trim().length > 0) {
       const first = raw.split(',')[0]?.trim();
       if (first) return cleanIp(first);
@@ -49,7 +54,7 @@ export default function AuditPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const logsPerPage = 6;
 
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     setLoading(true);
     try {
       let startDate: Date | undefined;
@@ -80,11 +85,19 @@ export default function AuditPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [
+    selectedUser,
+    selectedAction,
+    selectedResource,
+    dateRange,
+    customStartDate,
+    customEndDate,
+    fetchFromBackend,
+  ]);
 
   useEffect(() => {
     fetchLogs();
-  }, [selectedUser, selectedAction, selectedResource, dateRange, customStartDate, customEndDate]);
+  }, [fetchLogs]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -195,6 +208,51 @@ export default function AuditPage() {
     link.click();
   };
 
+  const handleBulkExport = async () => {
+    if (!bulkExportStartDate || !bulkExportEndDate) {
+      alert('Por favor, selecione o intervalo de datas para exportação.');
+      return;
+    }
+
+    setExporting(true);
+    try {
+      const response = await fetch('/api/audit/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          startDate: bulkExportStartDate,
+          endDate: bulkExportEndDate,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        alert(error.error || 'Falha ao exportar logs');
+        return;
+      }
+
+      // Download the CSV file
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `audit-logs-${bulkExportStartDate}_to_${bulkExportEndDate}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      setShowBulkExport(false);
+      setBulkExportStartDate('');
+      setBulkExportEndDate('');
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Erro ao exportar logs. Tente novamente.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const getActionStyle = (action: string) => {
     switch (action) {
       case 'login':
@@ -287,14 +345,23 @@ export default function AuditPage() {
               <span className="text-sm font-medium">Filtros</span>
             </button>
             {user?.role === 'admin' && (
-              <button
-                onClick={handleExport}
-                disabled={filteredLogs.length === 0}
-                className="btn-premium bg-brand-main text-white px-4 py-2 hover:bg-brand-main/90 disabled:opacity-50 disabled:scale-100"
-              >
-                <Download className="w-5 h-5 mr-2" />
-                Exportar CSV
-              </button>
+              <>
+                <button
+                  onClick={() => setShowBulkExport(!showBulkExport)}
+                  className="btn-premium bg-green-600 text-white px-4 py-2 hover:bg-green-700"
+                >
+                  <Calendar className="w-5 h-5 mr-2" />
+                  Exportação em Massa
+                </button>
+                <button
+                  onClick={handleExport}
+                  disabled={filteredLogs.length === 0}
+                  className="btn-premium bg-brand-main text-white px-4 py-2 hover:bg-brand-main/90 disabled:opacity-50 disabled:scale-100"
+                >
+                  <Download className="w-5 h-5 mr-2" />
+                  Exportar CSV
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -334,6 +401,69 @@ export default function AuditPage() {
           cleanIp={cleanIp}
           getDisplayIp={getDisplayIp}
         />
+
+        {/* Bulk Export Modal */}
+        {showBulkExport && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-panel-bg border border-border rounded-xl p-6 max-w-md w-full shadow-xl">
+              <h3 className="text-xl font-bold text-text-dark mb-4">Exportação em Massa de Logs</h3>
+              <p className="text-sm text-text-light mb-4">
+                Selecione o intervalo de datas para exportar. Limite máximo: 180 dias por
+                exportação.
+              </p>
+
+              <div className="space-y-4 mb-6">
+                <div>
+                  <label className="block text-sm font-medium text-text-light mb-2">
+                    Data Inicial
+                  </label>
+                  <input
+                    type="date"
+                    value={bulkExportStartDate}
+                    onChange={(e) => setBulkExportStartDate(e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-body-bg text-text-dark"
+                    max={new Date().toISOString().split('T')[0]}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-text-light mb-2">
+                    Data Final
+                  </label>
+                  <input
+                    type="date"
+                    value={bulkExportEndDate}
+                    onChange={(e) => setBulkExportEndDate(e.target.value)}
+                    className="w-full px-3 py-2 border border-border rounded-lg bg-body-bg text-text-dark"
+                    max={new Date().toISOString().split('T')[0]}
+                    min={bulkExportStartDate}
+                  />
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowBulkExport(false);
+                    setBulkExportStartDate('');
+                    setBulkExportEndDate('');
+                  }}
+                  className="flex-1 px-4 py-2 border border-border rounded-lg text-text-light hover:bg-body-bg transition-colors"
+                  disabled={exporting}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleBulkExport}
+                  disabled={!bulkExportStartDate || !bulkExportEndDate || exporting}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {exporting ? 'Exportando...' : 'Exportar'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

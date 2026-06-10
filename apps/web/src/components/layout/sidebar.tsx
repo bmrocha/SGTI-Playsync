@@ -82,9 +82,7 @@ export function Sidebar() {
     <div
       className={cn(
         'flex h-full flex-col border-r transition-all duration-300 shadow-2xl z-50 relative',
-        isSidebarCollapsed
-          ? 'w-[var(--sidebar-width-collapsed)]'
-          : 'w-[var(--sidebar-width-expanded)]',
+        isSidebarCollapsed ? 'w-(--sidebar-width-collapsed)' : 'w-(--sidebar-width-expanded)',
         theme === 'dark' ? 'backdrop-blur-md text-white' : 'text-slate-800',
       )}
       style={{
