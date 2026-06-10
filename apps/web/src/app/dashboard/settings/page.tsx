@@ -589,15 +589,6 @@ export default function SystemSettingsPage() {
     <div className="pt-3 pb-24 sm:pb-36 lg:pb-44 px-4 sm:px-6 lg:px-8 animate-fadeIn max-w-450 mx-auto flex-1 flex flex-col overflow-hidden">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4 pb-4 border-b border-zinc-200 dark:border-zinc-800 z-10 shrink-0 relative">
-        <div>
-          <div className="flex items-center gap-3 mb-1">
-            <Settings className="w-6 h-6 text-emerald-500" />
-            <h1 className="text-2xl font-bold text-text-dark">Configurações</h1>
-          </div>
-          <p className="text-sm text-text-light font-medium">
-            Gerencie as diretrizes globais e a infraestrutura do sistema.
-          </p>
-        </div>
         <div className="flex items-center gap-4">
           {hasChanges && (
             <div className="hidden lg:flex items-center mr-6 animate-fadeIn">

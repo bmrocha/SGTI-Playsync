@@ -134,15 +134,6 @@ export default function SectorsPage() {
     <div className="p-6 space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-brand-main/10 rounded-xl">
-            <Layers className="w-6 h-6 text-brand-main" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-text-dark">Setores</h1>
-            <p className="text-sm text-text-light">Gerencie os setores da organização</p>
-          </div>
-        </div>
         <button
           onClick={() => {
             setEditingSector(null);
