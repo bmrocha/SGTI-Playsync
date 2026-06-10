@@ -48,7 +48,7 @@
 
 ### 7. **Segurança Avançada**
 
-- Autenticação em dois fatores (2FA) para todos os usuários
+- Autenticação em dois fatores (2FA) para todos os usuários e para admin seja manualmente
 - Whitelist de IPs para acesso administrativo
 - Logs de tentativas de acesso falhas
 - Session timeout configurável
@@ -152,3 +152,8 @@ Para cada melhoria implementada, sugerimos monitorar:
 ---
 
 **Nota:** Estas sugestões devem ser priorizadas com base no impacto para o usuário e complexidade de implementação. Recomendamos começar pelas melhorias de maior impacto e menor complexidade.
+
+4.  **Integrações**
+5.  **Logs & Monitoramento**
+6.  **Gestão de Mídia Avançada**
+7.  **Facilidade de Uso**
