@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { KeyRound, X, Loader2, Copy, CheckCircle2, AlertCircle } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { KeyRound, X, Loader2, Copy, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 import { notifySuccess, notifyError } from '@/lib/notification-store';
 
 type Props = {
@@ -26,31 +26,39 @@ export function TokenActivationModal({
   const [currentInstallationId, setCurrentInstallationId] = useState(installationId);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Every time the modal opens, refresh the installation ID to get a fresh temporary one
+  // Only set the installation ID once when component mounts, NOT every time modal opens
+  // This ensures the ID stays consistent while the user is preparing to activate
   useEffect(() => {
-    if (open) {
-      // Refresh the status to get a new temporary installation ID
-      if (onRefreshStatus) {
-        setIsRefreshing(true);
-        onRefreshStatus();
-        // Small delay to ensure the status is refreshed
-        setTimeout(() => {
-          setIsRefreshing(false);
-        }, 300);
-      }
-      // Reset state when modal opens
+    if (open && !currentInstallationId) {
+      setCurrentInstallationId(installationId);
+    }
+  }, [open]);
+
+  // Update from parent only if we don't have one yet (first time)
+  useEffect(() => {
+    if (installationId && !currentInstallationId) {
+      setCurrentInstallationId(installationId);
+    }
+  }, [installationId, currentInstallationId]);
+
+  // Reset form state when modal closes
+  useEffect(() => {
+    if (!open) {
       setToken('');
       setError('');
       setCopied(false);
     }
-  }, [open, onRefreshStatus]);
+  }, [open]);
 
-  // Update the current installation ID when it changes (after refresh)
-  useEffect(() => {
-    if (open && installationId) {
-      setCurrentInstallationId(installationId);
+  const handleRefreshId = useCallback(() => {
+    if (onRefreshStatus) {
+      setIsRefreshing(true);
+      onRefreshStatus();
+      setTimeout(() => {
+        setIsRefreshing(false);
+      }, 300);
     }
-  }, [installationId, open]);
+  }, [onRefreshStatus]);
 
   if (!open) return null;
 
@@ -121,6 +129,14 @@ export function TokenActivationModal({
                 {isRefreshing ? 'Gerando novo ID...' : currentInstallationId}
               </code>
               <button
+                onClick={handleRefreshId}
+                className="p-3 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 rounded-xl transition-colors text-zinc-400 disabled:opacity-50"
+                disabled={isRefreshing || !currentInstallationId}
+                title="Gerar novo ID"
+              >
+                <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              </button>
+              <button
                 onClick={async () => {
                   if (isRefreshing || !currentInstallationId) return;
                   try {
@@ -145,6 +161,10 @@ export function TokenActivationModal({
                 )}
               </button>
             </div>
+            <p className="text-[9px] text-zinc-500">
+              Copie este ID e envie para o suporte gerar seu token. O ID não muda ao reabrir o
+              modal.
+            </p>
           </div>
 
           <div className="space-y-2">
