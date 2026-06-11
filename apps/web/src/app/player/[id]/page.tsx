@@ -76,6 +76,12 @@ export default function PlayerPage() {
   const playlistDataRef = useRef(playlistData);
   playlistDataRef.current = playlistData;
 
+  // Generate a unique viewer ID for this session
+  const viewerIdRef = useRef<string>('');
+  if (!viewerIdRef.current) {
+    viewerIdRef.current = `viewer_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  }
+
   // Unlock autoplay as early as possible (for TVs without human interaction)
   useEffect(() => {
     unlockAutoplay();
@@ -86,6 +92,52 @@ export default function PlayerPage() {
       clearTimeout(t2);
     };
   }, []);
+
+  // Send heartbeat to track active viewers
+  useEffect(() => {
+    if (!playlistId) return;
+
+    const viewerId = viewerIdRef.current;
+    let heartbeatInterval: NodeJS.Timeout | null = null;
+
+    const sendHeartbeat = async () => {
+      try {
+        console.log(
+          '[Viewer Tracking] Sending heartbeat for playlist:',
+          playlistId,
+          'viewer:',
+          viewerId,
+        );
+        const response = await fetch(`/api/playlist-links/${playlistId}/viewers`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ viewerId }),
+        });
+        const data = await response.json();
+        console.log('[Viewer Tracking] Heartbeat response:', data);
+      } catch (error) {
+        console.error('[Viewer Tracking] Failed to send heartbeat:', error);
+      }
+    };
+
+    // Send initial heartbeat immediately when playlist loads
+    if (isPlayerOpen) {
+      sendHeartbeat();
+      // Send heartbeat every 30 seconds
+      heartbeatInterval = setInterval(sendHeartbeat, 30000);
+    }
+
+    // Cleanup: send final heartbeat before unmount
+    return () => {
+      if (heartbeatInterval) clearInterval(heartbeatInterval);
+      // Notify server that this viewer is leaving
+      if (viewerId) {
+        fetch(`/api/playlist-links/${playlistId}/viewers?viewerId=${viewerId}`, {
+          method: 'DELETE',
+        }).catch(() => {});
+      }
+    };
+  }, [playlistId, isPlayerOpen]);
 
   useEffect(() => {
     if (!playlistId) {

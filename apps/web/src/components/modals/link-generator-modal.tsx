@@ -1,7 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { X, Link2, Copy, Check, Sun, Moon, Loader2, Save, ShieldAlert, Eye } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import {
+  X,
+  Link2,
+  Copy,
+  Check,
+  Sun,
+  Moon,
+  Loader2,
+  Save,
+  ShieldAlert,
+  Eye,
+  Monitor,
+} from 'lucide-react';
 import { MediaItem } from '@/lib/store';
 import { usePlaylistLinkStore } from '@/lib/playlist-link-store';
 import { useThemeStore } from '@/lib/theme-store';
@@ -64,8 +76,41 @@ export function LinkGeneratorModal({
   const [savedColor, setSavedColor] = useState<string>(systemColor || '#11876d');
   const [draftTheme, setDraftTheme] = useState<'light' | 'dark'>(systemTheme || 'light');
   const [draftColor, setDraftColor] = useState<string>(systemColor || '#11876d');
+  const [activeViewers, setActiveViewers] = useState<number>(0);
+  const viewersIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const hasChanges = draftTheme !== savedTheme || draftColor !== savedColor;
+
+  // Fetch active viewer count every 5 seconds
+  useEffect(() => {
+    if (!playlistId) return;
+
+    const fetchViewers = async () => {
+      try {
+        const res = await fetch(`/api/playlist-links/${playlistId}/viewers`, {
+          cache: 'no-store',
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setActiveViewers(data.activeViewers || 0);
+        }
+      } catch (error) {
+        console.error('Failed to fetch active viewers:', error);
+      }
+    };
+
+    // Fetch immediately
+    fetchViewers();
+
+    // Poll every 5 seconds for real-time updates
+    viewersIntervalRef.current = setInterval(fetchViewers, 5000);
+
+    return () => {
+      if (viewersIntervalRef.current) {
+        clearInterval(viewersIntervalRef.current);
+      }
+    };
+  }, [playlistId]);
 
   // Detect server host — use LAN IP when on localhost so the link works on other machines
   useEffect(() => {

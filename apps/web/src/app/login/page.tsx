@@ -218,7 +218,7 @@ export default function LoginPage() {
             <div className="space-y-4">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/5 dark:bg-zinc-900/50 border border-emerald-500/10 dark:border-white/5 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold uppercase tracking-[0.2em] backdrop-blur-md transition-colors">
                 <Zap className="w-3 h-3 fill-current" />
-                Media Protocol Active
+                Gerenciador Inteligente
               </div>
               <h1 className="text-5xl md:text-7xl font-black tracking-tighter leading-none text-slate-900 dark:text-white transition-colors flex items-center gap-1">
                 {systemName === 'PlaySync'

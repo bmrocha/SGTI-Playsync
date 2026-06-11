@@ -11,6 +11,7 @@ export * from './repositories/playback-log.repository';
 export * from './repositories/player.repository';
 export * from './repositories/playlist.repository';
 export * from './repositories/playlist-link.repository';
+export * from './repositories/playlist-link-viewer.repository';
 export * from './repositories/rate-limit.repository';
 export * from './repositories/refresh-token.repository';
 export * from './repositories/session.repository';

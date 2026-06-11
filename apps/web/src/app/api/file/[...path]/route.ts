@@ -35,15 +35,31 @@ export async function GET(
     const relativePath = pathSegments.join('/');
     const uploadDir = resolveUploadDir();
 
+    // Debug logging for troubleshooting
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[File API] Serving file:', {
+        relativePath,
+        uploadDir,
+        cwd: process.cwd(),
+        dirname: __dirname,
+      });
+    }
+
     // Normaliza e resolve o caminho absoluto do arquivo solicitado
     const requestedPath = path.normalize(path.join(uploadDir, relativePath));
 
     // Segurança: evita directory traversal (path traversal)
     if (!requestedPath.startsWith(uploadDir)) {
+      console.warn('[File API] Directory traversal attempt blocked:', requestedPath);
       return new NextResponse('Forbidden', { status: 403 });
     }
 
     if (!fs.existsSync(requestedPath)) {
+      console.warn('[File API] File not found:', {
+        requestedPath,
+        uploadDir,
+        relativePath,
+      });
       return new NextResponse('Not Found', { status: 404 });
     }
 

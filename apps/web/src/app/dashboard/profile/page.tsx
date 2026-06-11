@@ -295,28 +295,65 @@ function SettingsPageContent() {
             Gerencie suas informações e preferências.
           </p>
         </div>
-        {!searchParams.get('setup2fa') && !searchParams.get('changePassword') && (
-          <button
-            onClick={() => {
-              if (hasChanges) {
-                if (
-                  window.confirm(
-                    'Você tem alterações não salvas! Deseja realmente sair sem salvar?',
-                  )
-                ) {
+        <div className="flex items-center gap-3">
+          {!searchParams.get('setup2fa') && !searchParams.get('changePassword') && (
+            <button
+              onClick={() => {
+                if (hasChanges) {
+                  if (
+                    window.confirm(
+                      'Você tem alterações não salvas! Deseja realmente sair sem salvar?',
+                    )
+                  ) {
+                    router.push('/dashboard');
+                  }
+                } else {
                   router.push('/dashboard');
                 }
-              } else {
-                router.push('/dashboard');
-              }
-            }}
-            className="group relative flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-main text-white font-black text-[11px] uppercase tracking-[2px] transition-all duration-300 shadow-lg hover:scale-[1.03] active:scale-95 overflow-hidden border border-white/10"
+              }}
+              className="group relative flex items-center gap-2 px-4 py-2 rounded-xl bg-brand-main text-white font-black text-[11px] uppercase tracking-[2px] transition-all duration-300 shadow-lg hover:scale-[1.03] active:scale-95 overflow-hidden border border-white/10"
+            >
+              <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:animate-shimmer" />
+              <ArrowLeft className="w-4 h-4 relative z-10" />
+              <span className="relative z-10">Voltar</span>
+            </button>
+          )}
+          {/* Save button — in header after Back button */}
+          <button
+            onClick={handleSave}
+            disabled={
+              !hasChanges ||
+              isLoading ||
+              (password.length > 0 &&
+                (!(
+                  password.length >= 12 &&
+                  /[A-Z]/.test(password) &&
+                  /[a-z]/.test(password) &&
+                  /[0-9]/.test(password) &&
+                  /[^A-Za-z0-9]/.test(password)
+                ) ||
+                  password !== confirmPassword))
+            }
+            className={`group relative flex items-center gap-2 px-6 py-2 rounded-xl font-black text-[11px] uppercase tracking-[2px] transition-all duration-300 shadow-lg hover:scale-[1.03] active:scale-95 overflow-hidden border border-white/10 ${
+              hasChanges && !isLoading
+                ? 'bg-brand-main text-white shadow-xl shadow-brand-main/20'
+                : 'bg-gray-300 dark:bg-gray-800 cursor-not-allowed opacity-40 text-white'
+            }`}
           >
             <div className="absolute inset-0 bg-linear-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:animate-shimmer" />
-            <ArrowLeft className="w-4 h-4 relative z-10" />
-            <span className="relative z-10">Voltar</span>
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin mr-2 relative z-10" />
+                <span className="relative z-10">Processando...</span>
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2 relative z-10" />
+                <span className="relative z-10">Salvar</span>
+              </>
+            )}
           </button>
-        )}
+        </div>
       </div>
 
       {/* Content Grid — fills height, no scroll */}
@@ -385,13 +422,7 @@ function SettingsPageContent() {
           {/* Row 1 — Aparência */}
           <div className="shrink-0">
             <ThemeAppearanceSettings
-              theme={draftTheme}
               primaryColor={draftPrimaryColor}
-              onToggleTheme={() => {
-                const nextTheme = draftTheme === 'light' ? 'dark' : 'light';
-                setDraftTheme(nextTheme);
-                setTheme(nextTheme);
-              }}
               onSetPrimaryColor={(color) => {
                 setDraftPrimaryColor(color);
                 setPrimaryColor(color);
@@ -660,43 +691,6 @@ function SettingsPageContent() {
                   Deixe os campos em branco caso não queira alterar sua senha atual.
                 </p>
               </div>
-
-              {/* Save button — anchored at bottom */}
-              <div className="pt-4 border-t border-border mt-auto shrink-0">
-                <button
-                  onClick={handleSave}
-                  disabled={
-                    !hasChanges ||
-                    isLoading ||
-                    (password.length > 0 &&
-                      (!(
-                        password.length >= 12 &&
-                        /[A-Z]/.test(password) &&
-                        /[a-z]/.test(password) &&
-                        /[0-9]/.test(password) &&
-                        /[^A-Za-z0-9]/.test(password)
-                      ) ||
-                        password !== confirmPassword))
-                  }
-                  className={`btn-premium w-full py-3.5 text-[11px] uppercase tracking-[2px] font-black ${
-                    hasChanges && !isLoading
-                      ? 'bg-brand-main text-white shadow-xl shadow-brand-main/20 hover:scale-[1.01]'
-                      : 'bg-gray-300 dark:bg-gray-800 cursor-not-allowed opacity-40 text-white'
-                  }`}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                      Processando...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="w-4 h-4 mr-2" />
-                      Confirmar Alterações de Perfil
-                    </>
-                  )}
-                </button>
-              </div>
             </div>
           </div>
         </div>
@@ -720,14 +714,10 @@ export default function SettingsPage() {
 }
 
 function ThemeAppearanceSettings({
-  theme,
   primaryColor,
-  onToggleTheme,
   onSetPrimaryColor,
 }: {
-  theme: 'light' | 'dark';
   primaryColor: string;
-  onToggleTheme: () => void;
   onSetPrimaryColor: (color: string) => void;
 }) {
   const colors = [
@@ -748,29 +738,7 @@ function ThemeAppearanceSettings({
         </h3>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-[10px] font-bold text-text-light uppercase tracking-wider mb-2">
-            Tema
-          </label>
-          <div className="flex bg-body-bg p-1 rounded-xl border border-border">
-            <button
-              onClick={() => theme === 'dark' && onToggleTheme()}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${theme === 'light' ? 'bg-white shadow-sm text-brand-main' : 'text-text-light hover:text-text-dark'}`}
-            >
-              <Sun className="w-4 h-4" />
-              Claro
-            </button>
-            <button
-              onClick={() => theme === 'light' && onToggleTheme()}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${theme === 'dark' ? 'bg-gray-800 shadow-sm text-brand-main' : 'text-text-light hover:text-text-dark'}`}
-            >
-              <Moon className="w-4 h-4" />
-              Escuro
-            </button>
-          </div>
-        </div>
-
+      <div className="grid grid-cols-1 gap-6">
         <div>
           <label className="block text-[10px] font-bold text-text-light uppercase tracking-wider mb-2">
             Cor Principal

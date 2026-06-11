@@ -212,6 +212,21 @@ CREATE TABLE IF NOT EXISTS playlist_links (
         TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Table to track active viewers of shared playlist links in real-time
+CREATE TABLE IF NOT EXISTS playlist_link_viewers (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    playlist_link_id VARCHAR(50) REFERENCES playlist_links(id) ON DELETE CASCADE,
+    viewer_id VARCHAR(100) NOT NULL, -- Unique identifier for each viewer/device
+    last_heartbeat TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    user_agent TEXT,
+    ip_address VARCHAR(50),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_playlist_link_viewers_link_id ON playlist_link_viewers(playlist_link_id);
+CREATE INDEX IF NOT EXISTS idx_playlist_link_viewers_viewer_id ON playlist_link_viewers(viewer_id);
+CREATE INDEX IF NOT EXISTS idx_playlist_link_viewers_last_heartbeat ON playlist_link_viewers(last_heartbeat);
+
 -- Ensure theme column exists in playlist_links
 DO $$
 BEGIN
