@@ -66,6 +66,11 @@ RUN addgroup --system --gid 1001 nodejs && \
 
 COPY --from=builder /app/apps/web/public ./public
 
+# Create uploads directory with proper permissions
+RUN mkdir -p ./public/uploads && \
+  chmod -R 755 ./public/uploads && \
+  chown -R nextjs:nodejs ./public/uploads
+
 RUN mkdir -p .next && chown nextjs:nodejs .next
 
 COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./

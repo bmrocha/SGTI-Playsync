@@ -10,6 +10,13 @@ const nextConfig: NextConfig = {
     formats: ['image/avif', 'image/webp'],
   },
 
+  // Increase body size limit for file uploads (1GB)
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '1024mb',
+    },
+  },
+
   // Exclude Sentry from production builds if not configured
   ...(process.env.SENTRY_DISABLED === 'true'
     ? {

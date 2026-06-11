@@ -291,6 +291,7 @@ export function LicenseStatusCard() {
         onOpenChange={setTokenModalOpen}
         installationId={status?.installationId || ''}
         onActivated={() => refresh()}
+        onRefreshStatus={() => refresh()}
       />
     </div>
   );

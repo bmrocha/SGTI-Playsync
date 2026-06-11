@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import Image from 'next/image';
+
+import { useState, useEffect, useCallback } from 'react';
 import {
   Search,
-  Filter,
   Trash2,
   Eye,
   Upload,
@@ -11,11 +12,9 @@ import {
   FileVideo,
   FileAudio,
   Check,
-  AlertCircle,
   Loader2,
   X,
   Grid,
-  List,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useThemeStore } from '@/lib/theme-store';
@@ -58,7 +57,7 @@ export function MediaGallery({ onSelect, multiSelect = false, className }: Media
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | 'image' | 'video' | 'audio'>('all');
   const [selectedFiles, setSelectedFiles] = useState<string[]>([]);
-  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [viewMode] = useState<'grid' | 'list'>('grid');
   const [previewFile, setPreviewFile] = useState<MediaFile | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -68,7 +67,7 @@ export function MediaGallery({ onSelect, multiSelect = false, className }: Media
   const [totalPages, setTotalPages] = useState(0);
 
   // Fetch Files
-  const fetchFiles = async () => {
+  const fetchFiles = useCallback(async () => {
     setLoading(true);
     try {
       let url = `/api/media-library?limit=${limit}&page=${page}`;
@@ -88,11 +87,11 @@ export function MediaGallery({ onSelect, multiSelect = false, className }: Media
     } finally {
       setLoading(false);
     }
-  };
+  }, [limit, page, search, typeFilter]);
 
   useEffect(() => {
     fetchFiles();
-  }, [search, typeFilter, page]);
+  }, [fetchFiles]);
 
   useEffect(() => {
     fetchSettings();
@@ -190,8 +189,25 @@ export function MediaGallery({ onSelect, multiSelect = false, className }: Media
               let message = `Falha ao enviar ${file.name}`;
               try {
                 const data = JSON.parse(xhr.responseText);
-                if (data?.error) message = String(data.error);
-              } catch {}
+                if (data?.error) {
+                  message = String(data.error);
+                  // Log additional error details for debugging
+                  if (xhr.status === 500) {
+                    console.error(`[Upload Error] ${file.name}:`, {
+                      status: xhr.status,
+                      error: data.error,
+                      response: data,
+                    });
+                  }
+                }
+              } catch {
+                // If we can't parse the response, use status-based messages
+                if (xhr.status === 413) {
+                  message = `Arquivo muito grande. O servidor recusou o upload.`;
+                } else if (xhr.status === 500) {
+                  message = `Erro interno do servidor ao enviar ${file.name}. Verifique os logs do servidor.`;
+                }
+              }
               reject(new Error(message));
             }
           });
@@ -274,7 +290,7 @@ export function MediaGallery({ onSelect, multiSelect = false, className }: Media
           ].map((f) => (
             <button
               key={f.id}
-              onClick={() => setTypeFilter(f.id as any)}
+              onClick={() => setTypeFilter(f.id as 'all' | 'image' | 'video' | 'audio')}
               className={cn(
                 'px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wider flex items-center gap-2 whitespace-nowrap transition-all border',
                 typeFilter === f.id
@@ -345,11 +361,14 @@ export function MediaGallery({ onSelect, multiSelect = false, className }: Media
                 {/* Preview */}
                 <div className="aspect-square bg-slate-100 dark:bg-black/20 relative overflow-hidden">
                   {file.mime_type.startsWith('image') ? (
-                    <img
-                      src={file.url}
-                      alt={file.original_name}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
+                    <div className="relative w-full h-full">
+                      <Image
+                        src={file.url}
+                        alt={file.original_name}
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-110"
+                      />
+                    </div>
                   ) : file.mime_type.startsWith('video') ? (
                     <video src={file.url} className="w-full h-full object-cover opacity-80" />
                   ) : (
@@ -500,9 +519,11 @@ export function MediaGallery({ onSelect, multiSelect = false, className }: Media
 
             <div className="w-full flex-1 flex items-center justify-center overflow-hidden rounded-lg bg-black shadow-2xl border border-white/10">
               {previewFile.mime_type.startsWith('image') ? (
-                <img
+                <Image
                   src={previewFile.url}
                   alt={previewFile.original_name}
+                  width={1920}
+                  height={1080}
                   className="max-w-full max-h-[80vh] object-contain"
                 />
               ) : previewFile.mime_type.startsWith('video') ? (

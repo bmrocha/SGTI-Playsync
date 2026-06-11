@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { KeyRound, X, Loader2, Copy, CheckCircle2, AlertCircle } from 'lucide-react';
 import { notifySuccess, notifyError } from '@/lib/notification-store';
 
@@ -9,13 +9,48 @@ type Props = {
   onOpenChange: (open: boolean) => void;
   installationId: string;
   onActivated: () => void;
+  onRefreshStatus?: () => void; // Callback to refresh license status
 };
 
-export function TokenActivationModal({ open, onOpenChange, installationId, onActivated }: Props) {
+export function TokenActivationModal({
+  open,
+  onOpenChange,
+  installationId,
+  onActivated,
+  onRefreshStatus,
+}: Props) {
   const [token, setToken] = useState('');
   const [isApplying, setIsApplying] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+  const [currentInstallationId, setCurrentInstallationId] = useState(installationId);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Every time the modal opens, refresh the installation ID to get a fresh temporary one
+  useEffect(() => {
+    if (open) {
+      // Refresh the status to get a new temporary installation ID
+      if (onRefreshStatus) {
+        setIsRefreshing(true);
+        onRefreshStatus();
+        // Small delay to ensure the status is refreshed
+        setTimeout(() => {
+          setIsRefreshing(false);
+        }, 300);
+      }
+      // Reset state when modal opens
+      setToken('');
+      setError('');
+      setCopied(false);
+    }
+  }, [open, onRefreshStatus]);
+
+  // Update the current installation ID when it changes (after refresh)
+  useEffect(() => {
+    if (open && installationId) {
+      setCurrentInstallationId(installationId);
+    }
+  }, [installationId, open]);
 
   if (!open) return null;
 
@@ -30,7 +65,10 @@ export function TokenActivationModal({ open, onOpenChange, installationId, onAct
       const res = await fetch('/api/license/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: token.trim() }),
+        body: JSON.stringify({
+          token: token.trim(),
+          installationId: currentInstallationId, // Send the ID that was displayed
+        }),
       });
       if (res.ok) {
         notifySuccess('Sistema ativado com sucesso!', 'A licen\u00e7a foi aplicada ao sistema');
@@ -80,23 +118,25 @@ export function TokenActivationModal({ open, onOpenChange, installationId, onAct
             </label>
             <div className="flex items-center gap-2">
               <code className="flex-1 block p-3 bg-black/50 border border-zinc-800 rounded-xl text-emerald-400 font-mono text-xs break-all">
-                {installationId}
+                {isRefreshing ? 'Gerando novo ID...' : currentInstallationId}
               </code>
               <button
                 onClick={async () => {
+                  if (isRefreshing || !currentInstallationId) return;
                   try {
-                    await navigator.clipboard.writeText(installationId);
+                    await navigator.clipboard.writeText(currentInstallationId);
                     setCopied(true);
-                    notifySuccess('Copiado!', 'Token copiado para área de transferência');
+                    notifySuccess('Copiado!', 'ID copiado para área de transferência');
                     setTimeout(() => setCopied(false), 2000);
                   } catch {
                     notifyError(
                       'Falha ao copiar',
-                      'Não foi possível copiar o token para área de transferência',
+                      'Não foi possível copiar o ID para área de transferência',
                     );
                   }
                 }}
-                className="p-3 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 rounded-xl transition-colors text-zinc-400"
+                className="p-3 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 rounded-xl transition-colors text-zinc-400 disabled:opacity-50"
+                disabled={isRefreshing || !currentInstallationId}
               >
                 {copied ? (
                   <CheckCircle2 className="w-4 h-4 text-emerald-500" />
