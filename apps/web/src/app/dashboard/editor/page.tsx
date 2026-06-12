@@ -21,6 +21,8 @@ import {
 } from '@dnd-kit/sortable';
 import { LinkGeneratorModal } from '@/components/modals/link-generator-modal';
 import { LayoutSelector } from '@/components/layout/layout-selector';
+import { LayoutPreviewCard } from '@/components/layout/layout-preview-card';
+import { LAYOUT_TEMPLATES } from '@/lib/layout-templates';
 import { LayoutType, LAYOUT_CONFIGS } from '@/lib/layouts';
 import { useConfirm, ConfirmModal } from '@/components/modals/confirm-modal';
 import { useAlert } from '@/components/modals/alert-modal';
@@ -87,6 +89,7 @@ export default function EditorPage() {
 
   // Form state
   const [layout, setLayout] = useState<LayoutType>('single');
+  const [layoutTemplateId, setLayoutTemplateId] = useState<string>('');
 
   // Multi-zone Draft State (Legacy - removing usage in favor of modal, but keeping for safe migration if needed, actually removing logic)
   // const [zoneDraft, setZoneDraft] = ... REMOVED
@@ -408,50 +411,89 @@ export default function EditorPage() {
             )}
 
             {activeTab === 'layouts' && (
-              <div className="p-6 space-y-4">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                  <div className="lg:col-span-2">
-                    <LayoutSelector value={layout} onChange={setLayout} />
-                  </div>
-                  <div className="flex items-end">
-                    <button
-                      type="button"
-                      onClick={handleApplyLayoutToAll}
-                      disabled={items.filter((i) => i.type !== 'widget').length === 0}
-                      className="btn-premium bg-brand-accent text-black px-4 py-3 w-full font-bold disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      Aplicar a todos
-                    </button>
+              <div className="p-6 space-y-6">
+                {/* Layouts Nativos */}
+                <div>
+                  <h3 className="text-xs font-bold uppercase text-text-light mb-3">
+                    Layouts Nativos
+                  </h3>
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div className="lg:col-span-2">
+                      <LayoutSelector value={layout} onChange={setLayout} />
+                    </div>
+                    <div className="flex items-end">
+                      <button
+                        type="button"
+                        onClick={handleApplyLayoutToAll}
+                        disabled={items.filter((i) => i.type !== 'widget').length === 0}
+                        className="btn-premium bg-brand-accent text-black px-4 py-3 w-full font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Aplicar a todos
+                      </button>
+                    </div>
                   </div>
                 </div>
 
-                <div className="bg-body-bg border border-border rounded-lg p-2 max-h-[calc(100vh-420px)] overflow-y-auto custom-scrollbar">
-                  {items
-                    .filter((item) => item.type !== 'widget')
-                    .map((item) => (
-                      <div
-                        key={item.id}
-                        className="bg-panel-bg p-3 rounded border border-border flex items-center justify-between gap-3 mb-2"
-                      >
-                        <div className="min-w-0">
-                          <div className="text-sm font-bold text-text-dark truncate">
-                            {item.name}
-                          </div>
-                          <div className="text-xs text-text-light truncate">
-                            {LAYOUT_CONFIGS.find((l) => l.id === (item.layout || 'single'))?.name ||
-                              item.layout ||
-                              'single'}
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => handleOpenEditParams(item)}
-                          className="btn-premium bg-blue-600 text-white px-3 py-2 text-xs font-bold"
-                        >
-                          Editar
-                        </button>
-                      </div>
+                {/* Templates Profissionais */}
+                <div className="pt-6 border-t border-border">
+                  <h3 className="text-xs font-bold uppercase text-text-light mb-4 flex items-center gap-2">
+                    Templates Profissionais
+                    <span className="text-[10px] font-normal normal-case text-brand-main bg-brand-main/10 px-2 py-0.5 rounded-full">
+                      Premium
+                    </span>
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {LAYOUT_TEMPLATES.map((template) => (
+                      <LayoutPreviewCard
+                        key={template.id}
+                        template={template}
+                        isSelected={layoutTemplateId === template.id}
+                        onClick={() => {
+                          setLayoutTemplateId(template.id);
+                          setLayout('single');
+                        }}
+                        theme="dark"
+                      />
                     ))}
+                  </div>
+                </div>
+
+                {/* Playlist Items */}
+                <div className="pt-6 border-t border-border">
+                  <h3 className="text-xs font-bold uppercase text-text-light mb-3">
+                    Slides da Playlist
+                  </h3>
+                  <div className="bg-body-bg border border-border rounded-lg p-2 max-h-[calc(100vh-520px)] overflow-y-auto custom-scrollbar">
+                    {items
+                      .filter((item) => item.type !== 'widget')
+                      .map((item) => (
+                        <div
+                          key={item.id}
+                          className="bg-panel-bg p-3 rounded border border-border flex items-center justify-between gap-3 mb-2"
+                        >
+                          <div className="min-w-0">
+                            <div className="text-sm font-bold text-text-dark truncate">
+                              {item.name}
+                            </div>
+                            <div className="text-xs text-text-light truncate">
+                              {item.layoutTemplateId
+                                ? LAYOUT_TEMPLATES.find((t) => t.id === item.layoutTemplateId)?.name
+                                : LAYOUT_CONFIGS.find((l) => l.id === (item.layout || 'single'))
+                                    ?.name ||
+                                  item.layout ||
+                                  'single'}
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditParams(item)}
+                            className="btn-premium bg-blue-600 text-white px-3 py-2 text-xs font-bold"
+                          >
+                            Editar
+                          </button>
+                        </div>
+                      ))}
+                  </div>
                 </div>
               </div>
             )}
