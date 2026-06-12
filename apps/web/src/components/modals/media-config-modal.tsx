@@ -148,7 +148,18 @@ export function MediaConfigModal({
           setLayoutTemplateId(initialItem.layoutTemplateId || '');
           setRegionConfig(initialItem.regionConfig || {});
           if (initialItem.layout !== 'single' && initialItem.zones) {
-            setZoneDraft(initialItem.zones);
+            // Ensure zones have all required fields with proper defaults
+            const normalizedZones = initialItem.zones.map((zone) => {
+              if (!zone) return null;
+              return {
+                id: zone.id,
+                type: zone.type,
+                url: zone.url || '',
+                name: zone.name || 'Untitled',
+                rotation: zone.rotation,
+              };
+            });
+            setZoneDraft(normalizedZones);
           } else {
             setSinglePreview(initialItem.url);
             setSingleUrl(
@@ -208,11 +219,11 @@ export function MediaConfigModal({
       overrideUrl?: string,
       overrideZones?: Array<{
         id: string;
-        url?: string;
-        file?: File;
-        preview?: string;
-        type?: string;
-      }>,
+        type: MediaType;
+        url: string;
+        name: string;
+        rotation?: number;
+      } | null>,
     ): MediaItem => {
       const finalLayout = layoutTemplateId ? 'single' : layout;
       const currentUrl = overrideUrl !== undefined ? overrideUrl : singleUrl || singlePreview;
@@ -259,7 +270,7 @@ export function MediaConfigModal({
         duration,
         rotation,
         layout: finalLayout,
-        zones: finalLayout === 'single' ? undefined : currentZones,
+        zones: finalLayout === 'single' ? undefined : (currentZones as MediaItem['zones']),
         layoutTemplateId: layoutTemplateId || undefined,
         regionConfig: regionConfig,
         schedule: {
@@ -493,7 +504,16 @@ export function MediaConfigModal({
       return;
     }
 
-    const newItem = constructItem(finalUrl, finalZones);
+    const newItem = constructItem(
+      finalUrl,
+      finalZones as Array<{
+        id: string;
+        type: MediaType;
+        url: string;
+        name: string;
+        rotation?: number;
+      } | null>,
+    );
 
     onSave(newItem);
     setIsUploading(false);
