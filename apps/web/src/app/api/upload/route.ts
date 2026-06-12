@@ -3,9 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import { Readable } from 'stream';
-import { pipeline } from 'stream/promises';
-import { ReadableStream } from 'stream/web';
 import { query } from '@playsync/database';
 import { verifyToken } from '@/lib/auth';
 import { getSystemSettings } from '@/lib/system-settings';
@@ -17,108 +14,6 @@ import Busboy from 'busboy';
 // Configure route for file uploads
 export const dynamic = 'force-dynamic';
 export const maxDuration = 120; // 120 seconds max for large uploads
-
-// Manually parse multipart form data to bypass Next.js body size limits
-function parseMultipartFormData(
-  request: NextRequest,
-  maxSizeBytes?: number,
-): Promise<{ file: File | null; error?: string }> {
-  return new Promise((resolve) => {
-    const contentType = request.headers.get('content-type') || '';
-
-    if (!contentType.includes('multipart/form-data')) {
-      resolve({ file: null, error: 'Invalid content type' });
-      return;
-    }
-
-    const busboy = Busboy({
-      headers: { 'content-type': contentType },
-      limits: {
-        fileSize: maxSizeBytes, // Respect system settings
-        files: 1,
-      },
-    });
-    let file: File | null = null;
-    let error: string | undefined;
-    let streamEnded = false;
-    let totalSize = 0;
-
-    busboy.on('file', (_fieldname, fileStream, info) => {
-      const { filename, mimeType } = info;
-      const chunks: Buffer[] = [];
-
-      fileStream.on('data', (chunk) => {
-        totalSize += chunk.length;
-
-        // Check size limit during streaming
-        if (maxSizeBytes && totalSize > maxSizeBytes) {
-          fileStream.destroy();
-          error = `File size exceeds limit of ${Math.round(maxSizeBytes / 1024 / 1024)}MB`;
-          busboy.emit('error', new Error(error));
-          return;
-        }
-
-        chunks.push(chunk);
-      });
-
-      fileStream.on('end', () => {
-        if (!error) {
-          const buffer = Buffer.concat(chunks);
-          file = new File([buffer], filename, { type: mimeType });
-        }
-      });
-    });
-
-    busboy.on('error', (err: Error) => {
-      if (!streamEnded) {
-        streamEnded = true;
-        error = err.message;
-        logger.error({ err }, '[Upload] Busboy error');
-        resolve({ file: null, error });
-      }
-    });
-
-    busboy.on('finish', () => {
-      if (!streamEnded) {
-        streamEnded = true;
-        if (error) {
-          resolve({ file: null, error });
-        } else {
-          resolve({ file });
-        }
-      }
-    });
-
-    // Pipe the raw request body to busboy
-    const reader = request.body?.getReader();
-    if (!reader) {
-      if (!streamEnded) {
-        streamEnded = true;
-        resolve({ file: null, error: 'No body' });
-      }
-      return;
-    }
-
-    const push = async () => {
-      try {
-        const { done, value } = await reader.read();
-        if (done) {
-          busboy.end();
-          return;
-        }
-        busboy.write(value);
-        push();
-      } catch (err) {
-        if (!streamEnded) {
-          streamEnded = true;
-          busboy.emit('error', err);
-        }
-      }
-    };
-
-    push();
-  });
-}
 
 const ENVIRONMENT = process.env.NODE_ENV || 'development';
 const UPLOAD_DIR = ensureUploadDir();
@@ -251,6 +146,174 @@ function validateFileMagicBytes(filepath: string, extLower: string): boolean {
   }
 }
 
+/**
+ * Parse multipart form data using Busboy with streaming directly to disk.
+ * This avoids loading the entire file into memory.
+ */
+function parseAndStreamFile(
+  request: NextRequest,
+  maxSizeBytes: number,
+  uploadDir: string,
+): Promise<{
+  filepath: string | null;
+  filename: string;
+  fileSize: number;
+  mimeType: string;
+  error?: string;
+}> {
+  return new Promise((resolve) => {
+    const contentType = request.headers.get('content-type') || '';
+
+    if (!contentType.includes('multipart/form-data')) {
+      resolve({
+        filepath: null,
+        filename: '',
+        fileSize: 0,
+        mimeType: '',
+        error: 'Invalid content type',
+      });
+      return;
+    }
+
+    const timestamp = Date.now();
+    const randomString = Math.random().toString(36).substring(2, 8);
+    let tempFilename = '';
+    let tempFilepath = '';
+    let writeStream: fs.WriteStream | null = null;
+    let fileSize = 0;
+    let mimeType = '';
+    let originalName = '';
+    let resolved = false;
+
+    const busboy = Busboy({
+      headers: { 'content-type': contentType },
+      limits: {
+        fileSize: maxSizeBytes,
+        files: 1,
+      },
+    });
+
+    busboy.on('file', (_fieldname, fileStream, info) => {
+      originalName = info.filename;
+      mimeType = info.mimeType;
+      const extension = path.extname(originalName);
+      tempFilename = `${timestamp}-${randomString}${extension}`;
+      tempFilepath = path.join(uploadDir, tempFilename);
+
+      writeStream = fs.createWriteStream(tempFilepath);
+
+      fileStream.on('data', (chunk) => {
+        fileSize += chunk.length;
+      });
+
+      fileStream.on('limit', () => {
+        if (writeStream) {
+          writeStream.destroy();
+        }
+        if (!resolved) {
+          resolved = true;
+          fs.unlink(tempFilepath, () => {}); // Clean up partial file
+          resolve({
+            filepath: null,
+            filename: '',
+            fileSize: 0,
+            mimeType: '',
+            error: `File size exceeds limit of ${Math.round(maxSizeBytes / 1024 / 1024)}MB`,
+          });
+        }
+      });
+
+      fileStream.pipe(writeStream);
+
+      writeStream.on('finish', () => {
+        if (!resolved) {
+          resolved = true;
+          resolve({
+            filepath: tempFilepath,
+            filename: originalName,
+            fileSize,
+            mimeType,
+          });
+        }
+      });
+
+      writeStream.on('error', (err) => {
+        if (!resolved) {
+          resolved = true;
+          logger.error({ err }, '[Upload] Write stream error');
+          fs.unlink(tempFilepath, () => {});
+          resolve({
+            filepath: null,
+            filename: '',
+            fileSize: 0,
+            mimeType: '',
+            error: 'Failed to write file to disk',
+          });
+        }
+      });
+    });
+
+    busboy.on('error', (err: Error) => {
+      if (!resolved) {
+        resolved = true;
+        logger.error({ err }, '[Upload] Busboy error');
+        if (tempFilepath) {
+          fs.unlink(tempFilepath, () => {});
+        }
+        resolve({
+          filepath: null,
+          filename: '',
+          fileSize: 0,
+          mimeType: '',
+          error: err.message,
+        });
+      }
+    });
+
+    busboy.on('finish', () => {
+      if (!resolved) {
+        resolved = true;
+        resolve({
+          filepath: null,
+          filename: '',
+          fileSize: 0,
+          mimeType: '',
+          error: 'No file provided',
+        });
+      }
+    });
+
+    // Pipe the raw request body to busboy
+    const reader = request.body?.getReader();
+    if (!reader) {
+      if (!resolved) {
+        resolved = true;
+        resolve({ filepath: null, filename: '', fileSize: 0, mimeType: '', error: 'No body' });
+      }
+      return;
+    }
+
+    const push = async () => {
+      try {
+        const { done, value } = await reader.read();
+        if (done) {
+          busboy.end();
+          return;
+        }
+        busboy.write(value);
+        push();
+      } catch (err) {
+        if (!resolved) {
+          resolved = true;
+          busboy.emit('error', err);
+        }
+      }
+    };
+
+    push();
+  });
+}
+
 export async function POST(request: NextRequest) {
   const _lc = await requireLicense();
   if (_lc) return _lc;
@@ -279,22 +342,21 @@ export async function POST(request: NextRequest) {
     const limitMb = toPositiveInt(settings.uploadLimitVideo) ?? defaultVideoLimitMb;
     const maxSizeBytes = limitMb * 1024 * 1024;
 
-    // Read the raw body with size limit check based on system settings
-    const contentLength = request.headers.get('content-length');
-    if (contentLength) {
-      const sizeInBytes = parseInt(contentLength, 10);
-      if (sizeInBytes > maxSizeBytes) {
-        return NextResponse.json(
-          { error: `Arquivo excede o limite de ${limitMb}MB configurado no sistema` },
-          { status: 413 },
-        );
-      }
-    }
-
-    // Parse FormData manually using Busboy to bypass Next.js body size limits
-    logger.info({ maxSizeMb: limitMb }, '[Upload] Parsing FormData with Busboy');
+    logger.info(
+      { maxSizeMb: limitMb },
+      '[Upload] Parsing FormData with Busboy and streaming to disk',
+    );
     const parseStart = Date.now();
-    const { file, error: parseError } = await parseMultipartFormData(request, maxSizeBytes);
+
+    // Parse and stream file directly to disk (no memory buffer)
+    const {
+      filepath,
+      filename,
+      fileSize,
+      mimeType,
+      error: parseError,
+    } = await parseAndStreamFile(request, maxSizeBytes, UPLOAD_DIR);
+
     logger.info({ duration: Date.now() - parseStart }, '[Upload] FormData parsing completed');
 
     if (parseError) {
@@ -309,6 +371,8 @@ export async function POST(request: NextRequest) {
         errorMessage = 'Upload expirou. Verifique sua conexao e tente novamente.';
       } else if (parseError.includes('content-type') || parseError.includes('Invalid')) {
         errorMessage = 'Formato de arquivo invalido. Use o formato multipart/form-data.';
+      } else if (parseError.includes('exceeds limit')) {
+        errorMessage = parseError;
       }
 
       return NextResponse.json(
@@ -320,48 +384,34 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!file) {
+    if (!filepath) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
     logger.info(
-      { fileName: file.name, fileSize: file.size, fileType: file.type },
-      '[Upload] File received',
+      { fileName: filename, fileSize, fileType: mimeType },
+      '[Upload] File received and saved to disk',
     );
 
-    const originalName = file.name;
-    const extension = path.extname(originalName);
+    const extension = path.extname(filename);
     const extLower = extension.toLowerCase();
     const isVideo =
-      file.type?.startsWith('video') ||
+      mimeType?.startsWith('video') ||
       ['.mp4', '.webm', '.mov', '.mkv', '.m4v', '.avi', '.wmv', '.flv', '.ogg'].includes(extLower);
 
-    // Validate file size against settings (already checked during streaming, but double-check here)
+    // Validate file size against settings
     const defaultImageLimitMb = 500;
     const videoLimitMb = toPositiveInt(settings.uploadLimitVideo) ?? defaultVideoLimitMb;
     const imageLimitMb = toPositiveInt(settings.uploadLimit) ?? defaultImageLimitMb;
     const maxAllowedSize = isVideo ? videoLimitMb * 1024 * 1024 : imageLimitMb * 1024 * 1024;
 
-    if (file.size > maxAllowedSize) {
+    if (fileSize > maxAllowedSize) {
+      fs.unlinkSync(filepath);
       return NextResponse.json(
         { error: `Arquivo excede o limite de ${isVideo ? videoLimitMb : imageLimitMb}MB` },
         { status: 413 },
       );
     }
-
-    // Generate unique filename
-    const timestamp = Date.now();
-    const randomString = Math.random().toString(36).substring(2, 8);
-    const filename = `${timestamp}-${randomString}${extension}`;
-    const filepath = path.join(UPLOAD_DIR, filename);
-
-    // Stream file directly to disk — evita carregar o arquivo inteiro na RAM
-    logger.info({ filepath }, '[Upload] Writing file to disk');
-    const writeStart = Date.now();
-    const webStream = file.stream() as ReadableStream;
-    const readable = Readable.fromWeb(webStream);
-    await pipeline(readable, fs.createWriteStream(filepath));
-    logger.info({ duration: Date.now() - writeStart }, '[Upload] File written to disk');
 
     // Validate magic bytes (tipo real do arquivo, nao confiar apenas na extensao)
     logger.info({ filepath, extLower }, '[Upload] Validating magic bytes');
@@ -371,6 +421,7 @@ export async function POST(request: NextRequest) {
       { duration: Date.now() - magicStart, valid: validTypes },
       '[Upload] Magic bytes validation completed',
     );
+
     if (!validTypes) {
       fs.unlinkSync(filepath);
       return NextResponse.json(
@@ -383,26 +434,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate public URL
-    const publicUrl = `/uploads/${filename}`;
+    const publicUrl = `/uploads/${path.basename(filepath)}`;
 
     // Save metadata to database
-    const fileSize = file.size;
-    const mimeType = (() => {
-      if (file.type) return file.type;
-      const map: Record<string, string> = {
-        '.mp4': 'video/mp4',
-        '.m4v': 'video/mp4',
-        '.webm': 'video/webm',
-        '.mov': 'video/quicktime',
-        '.mkv': 'video/x-matroska',
-        '.avi': 'video/x-msvideo',
-        '.wmv': 'video/x-ms-wmv',
-        '.flv': 'video/x-flv',
-        '.ogg': 'video/ogg',
-      };
-      return map[extLower] || 'application/octet-stream';
-    })();
-
     await ensureMediaLibraryTable();
 
     const mediaId = crypto.randomUUID();
@@ -425,8 +459,8 @@ export async function POST(request: NextRequest) {
 
     const result = await query(insertQuery, [
       mediaId,
+      path.basename(filepath),
       filename,
-      originalName,
       mimeType,
       fileSize,
       filepath,
@@ -444,9 +478,9 @@ export async function POST(request: NextRequest) {
       userRole: ((payload as Record<string, unknown>).role as string) || 'user',
       action: 'UPLOAD',
       resource: 'media',
-      details: `Arquivo ${originalName} enviado (${fileSize} bytes)`,
+      details: `Arquivo ${filename} enviado (${fileSize} bytes)`,
       resourceId: newMedia.id,
-      resourceName: originalName,
+      resourceName: filename,
     });
 
     const totalTime = Date.now() - startTime;
@@ -455,7 +489,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       url: publicUrl,
-      filename: originalName,
+      filename: filename,
       id: newMedia.id,
       uploaded_at: newMedia.uploaded_at,
     });
