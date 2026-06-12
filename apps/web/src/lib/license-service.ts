@@ -31,6 +31,36 @@ export function generateTemporaryInstallationId(): string {
   return crypto.randomUUID();
 }
 
+// Get persisted temporary installation ID from localStorage (client-side only)
+function getTemporaryInstallationId(): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    return localStorage.getItem('temporary_installation_id');
+  } catch {
+    return null;
+  }
+}
+
+// Set persisted temporary installation ID to localStorage (client-side only)
+function setTemporaryInstallationId(id: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem('temporary_installation_id', id);
+  } catch {
+    // localStorage not available
+  }
+}
+
+// Clear persisted temporary installation ID from localStorage
+export function clearTemporaryInstallationId(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem('temporary_installation_id');
+  } catch {
+    // localStorage not available
+  }
+}
+
 export async function getLicenseState(): Promise<LicenseState> {
   const res = await query('SELECT value FROM system_settings WHERE key = $1', ['license_state']);
   let state: LicenseState;
@@ -72,7 +102,15 @@ export async function getLicenseStatus(): Promise<LicenseStatusResponse> {
   // Always generate a fresh temporary ID if not licensed
   let displayInstallationId = state.installationId;
   if (!isLicensed) {
-    displayInstallationId = generateTemporaryInstallationId();
+    // Check if we have a persisted temporary installation ID
+    const persistedTempId = getTemporaryInstallationId();
+    if (persistedTempId) {
+      displayInstallationId = persistedTempId;
+    } else {
+      // Generate new temporary ID and persist it
+      displayInstallationId = generateTemporaryInstallationId();
+      setTemporaryInstallationId(displayInstallationId);
+    }
   }
 
   let reason = 'ACTIVATED';

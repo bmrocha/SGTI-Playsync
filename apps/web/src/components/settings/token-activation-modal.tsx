@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { KeyRound, X, Loader2, Copy, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 import { notifySuccess, notifyError } from '@/lib/notification-store';
+import { clearTemporaryInstallationId } from '@/lib/license-service';
 
 type Props = {
   open: boolean;
@@ -79,6 +80,8 @@ export function TokenActivationModal({
         }),
       });
       if (res.ok) {
+        // Clear the temporary installation ID from localStorage
+        clearTemporaryInstallationId();
         notifySuccess('Sistema ativado com sucesso!', 'A licen\u00e7a foi aplicada ao sistema');
         onOpenChange(false);
         onActivated();
