@@ -13,6 +13,11 @@ import { logger } from '@/lib/logger';
 import { logServerAction } from '@/lib/server-audit';
 import { ensureUploadDir } from '@/lib/upload-path';
 
+// Configure body size limit for file uploads (1GB)
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60; // 60 seconds max for large uploads
+export const sizeLimit = '1024mb';
+
 const ENVIRONMENT = process.env.NODE_ENV || 'development';
 const UPLOAD_DIR = ensureUploadDir();
 
@@ -161,7 +166,21 @@ export async function POST(request: NextRequest) {
 
     const userId = payload.id as string;
 
-    const formData = await request.formData();
+    // Parse FormData with better error handling
+    let formData: FormData;
+    try {
+      formData = await request.formData();
+    } catch (error) {
+      logger.error({ err: error }, '[Upload] Failed to parse FormData');
+      return NextResponse.json(
+        {
+          error:
+            'Falha ao processar o upload. Verifique se o arquivo nao excede o limite e tente novamente.',
+        },
+        { status: 400 },
+      );
+    }
+
     const file = formData.get('file') as File;
 
     if (!file) {
