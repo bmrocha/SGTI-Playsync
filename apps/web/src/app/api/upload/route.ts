@@ -12,11 +12,78 @@ import { getSystemSettings } from '@/lib/system-settings';
 import { logger } from '@/lib/logger';
 import { logServerAction } from '@/lib/server-audit';
 import { ensureUploadDir } from '@/lib/upload-path';
+import Busboy from 'busboy';
 
-// Configure body size limit for file uploads (1GB)
+// Configure route for file uploads
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // 60 seconds max for large uploads
-export const sizeLimit = '1024mb';
+
+// Manually parse multipart form data to bypass Next.js body size limits
+function parseMultipartFormData(
+  request: NextRequest,
+): Promise<{ file: File | null; error?: string }> {
+  return new Promise((resolve) => {
+    const contentType = request.headers.get('content-type') || '';
+
+    if (!contentType.includes('multipart/form-data')) {
+      resolve({ file: null, error: 'Invalid content type' });
+      return;
+    }
+
+    const busboy = Busboy({ headers: { 'content-type': contentType } });
+    let file: File | null = null;
+    let error: string | undefined;
+
+    busboy.on('file', (_fieldname, fileStream, info) => {
+      const { filename, mimeType } = info;
+      const chunks: Buffer[] = [];
+
+      fileStream.on('data', (chunk) => {
+        chunks.push(chunk);
+      });
+
+      fileStream.on('end', () => {
+        const buffer = Buffer.concat(chunks);
+        file = new File([buffer], filename, { type: mimeType });
+      });
+    });
+
+    busboy.on('error', (err: Error) => {
+      error = err.message;
+    });
+
+    busboy.on('finish', () => {
+      if (error) {
+        resolve({ file: null, error });
+      } else {
+        resolve({ file });
+      }
+    });
+
+    // Pipe the raw request body to busboy
+    const reader = request.body?.getReader();
+    if (!reader) {
+      resolve({ file: null, error: 'No body' });
+      return;
+    }
+
+    const push = async () => {
+      try {
+        const { done, value } = await reader.read();
+        if (done) {
+          busboy.end();
+          return;
+        }
+        busboy.write(value);
+        push();
+      } catch (err) {
+        busboy.emit('error', err);
+      }
+    };
+
+    push();
+  });
+}
 
 const ENVIRONMENT = process.env.NODE_ENV || 'development';
 const UPLOAD_DIR = ensureUploadDir();
@@ -152,6 +219,7 @@ function validateFileMagicBytes(filepath: string, extLower: string): boolean {
 export async function POST(request: NextRequest) {
   const _lc = await requireLicense();
   if (_lc) return _lc;
+
   try {
     // Authenticate user
     const token = request.cookies.get('auth_token')?.value;
@@ -166,12 +234,21 @@ export async function POST(request: NextRequest) {
 
     const userId = payload.id as string;
 
-    // Parse FormData with better error handling
-    let formData: FormData;
-    try {
-      formData = await request.formData();
-    } catch (error) {
-      logger.error({ err: error }, '[Upload] Failed to parse FormData');
+    // Read the raw body with size limit check
+    const contentLength = request.headers.get('content-length');
+    if (contentLength) {
+      const sizeInBytes = parseInt(contentLength, 10);
+      const maxSizeBytes = 1024 * 1024 * 1024; // 1GB
+      if (sizeInBytes > maxSizeBytes) {
+        return NextResponse.json({ error: 'Arquivo excede o limite de 1GB' }, { status: 413 });
+      }
+    }
+
+    // Parse FormData manually using Busboy to bypass Next.js body size limits
+    const { file, error: parseError } = await parseMultipartFormData(request);
+
+    if (parseError) {
+      logger.error({ error: parseError }, '[Upload] Failed to parse FormData');
       return NextResponse.json(
         {
           error:
@@ -180,8 +257,6 @@ export async function POST(request: NextRequest) {
         { status: 400 },
       );
     }
-
-    const file = formData.get('file') as File;
 
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });

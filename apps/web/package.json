@@ -12,13 +12,15 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@playsync/database": "*",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
+    "@playsync/database": "*",
     "@sentry/nextjs": "^10.53.1",
+    "@types/busboy": "^1.5.4",
     "@types/qrcode": "^1.5.6",
     "bcryptjs": "^3.0.3",
+    "busboy": "^1.6.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.34.0",
