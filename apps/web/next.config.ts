@@ -80,7 +80,7 @@ const nextConfig: NextConfig = {
           {
             key: 'Content-Security-Policy',
             value:
-              "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.youtube.com https://s.ytimg.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self' data:; media-src 'self' blob: data: https:; frame-src 'self' http://localhost:* https://www.youtube.com https://www.youtube-nocookie.com https: data:; connect-src 'self' https:; frame-ancestors 'self' *;",
+              "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.youtube.com https://s.ytimg.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https: http:; font-src 'self' data:; media-src 'self' blob: data: https: http:; frame-src 'self' http: https: data: blob:; connect-src 'self' https: http:; frame-ancestors 'self' *;",
           },
         ],
       },
