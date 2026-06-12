@@ -186,93 +186,101 @@ export default function SettingsMidiaTab({
               </button>
             </div>
 
-            {/* Hardware Accel Toggle */}
-            <div className="flex items-center justify-between p-3 bg-white dark:bg-zinc-900 text-text-dark dark:text-white rounded-2xl border border-emerald-500/20 transition-all hover:border-emerald-500/40 group/item">
-              <div className="flex items-center gap-3">
-                <div
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${hardwareAccel ? 'bg-emerald-500/10 text-emerald-500' : 'bg-zinc-100 dark:bg-zinc-800 text-text-light'}`}
-                >
-                  <Cpu className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-[10px] font-bold">Aceleração de Hardware</div>
-                  <div className="text-[8px] font-medium text-text-light">
-                    Decodificação via GPU
+            {/* Hardware Accel Toggle - Coming Soon */}
+            <div className="relative group">
+              <div className="flex items-center justify-between p-3 bg-white dark:bg-zinc-900 text-text-dark dark:text-white rounded-2xl border border-emerald-500/20 transition-all opacity-60 cursor-not-allowed">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-text-light">
+                    <Cpu className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-bold">Aceleração de Hardware</div>
+                    <div className="text-[8px] font-medium text-text-light">
+                      Decodificação via GPU
+                    </div>
                   </div>
                 </div>
-              </div>
-              <button
-                onClick={() => setField('hardwareAccel', !hardwareAccel)}
-                className={`w-10 h-6 rounded-full p-1 transition-all ${hardwareAccel ? 'bg-emerald-500' : 'bg-zinc-200 dark:bg-zinc-700'}`}
-              >
-                <div
-                  className={`w-4 h-4 bg-white rounded-full  transition-all ${hardwareAccel ? 'translate-x-4' : 'translate-x-0'}`}
-                />
-              </button>
-            </div>
-
-            {/* New: Sincronização Offline */}
-            <div className="flex items-center justify-between p-3 bg-white dark:bg-zinc-900 text-text-dark dark:text-white rounded-2xl border border-emerald-500/20 transition-all hover:border-emerald-500/40 group/item">
-              <div className="flex items-center gap-3">
-                <div
-                  className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${isOfflineSyncEnabled ? 'bg-emerald-500/10 text-emerald-500' : 'bg-zinc-100 dark:bg-zinc-800 text-text-light'}`}
-                >
-                  <Database className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-[10px] font-bold">Store & Sync Offline</div>
-                  <div className="text-[8px] font-medium text-text-light">
-                    Persistência local agressiva
-                  </div>
+                <div className="w-10 h-6 rounded-full p-1 bg-zinc-200 dark:bg-zinc-700 cursor-not-allowed">
+                  <div className="w-4 h-4 bg-white rounded-full transition-all translate-x-0" />
                 </div>
               </div>
-              <button
-                onClick={() => setField('isOfflineSyncEnabled', !isOfflineSyncEnabled)}
-                className={`w-10 h-6 rounded-full p-1 transition-all ${isOfflineSyncEnabled ? 'bg-emerald-500' : 'bg-zinc-200 dark:bg-zinc-700'}`}
-              >
-                <div
-                  className={`w-4 h-4 bg-white rounded-full  transition-all ${isOfflineSyncEnabled ? 'translate-x-4' : 'translate-x-0'}`}
-                />
-              </button>
-            </div>
-
-            {/* Media Quality Selector */}
-            <div className="p-3 bg-white dark:bg-zinc-900 rounded-2xl border border-emerald-500/20">
-              <div className="flex items-center gap-2 mb-2.5">
-                <Tv className="w-3.5 h-3.5 text-emerald-500" />
-                <span className="text-[9px] font-black text-text-light uppercase tracking-widest">
-                  Qualidade de Transcodificação
+              <div className="absolute inset-0 flex items-center justify-center bg-black/5 dark:bg-black/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity cursor-not-allowed">
+                <span className="bg-emerald-500 text-white text-[9px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                  Em Breve
                 </span>
               </div>
-              <div className="flex gap-1.5">
-                {[
-                  { value: 'speed', label: 'Velocidade', desc: 'Máxima performance' },
-                  { value: 'balanced', label: 'Balanceado', desc: 'Qualidade e fluxo' },
-                  { value: 'quality', label: 'Qualidade', desc: 'Máxima fidelidade' },
-                ].map((opt) => {
-                  const isActive = mediaQuality === opt.value;
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => setField('mediaQuality', opt.value)}
-                      className={`flex-1 py-2 px-1 rounded-xl text-[9px] font-black uppercase border flex flex-col items-center gap-0.5 transition-all ${
-                        isActive
-                          ? 'bg-emerald-500/10 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500'
-                          : 'bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-text-light hover:border-emerald-500/30'
-                      }`}
-                    >
-                      <span>{opt.label}</span>
-                      <span className="text-[7px] font-medium normal-case opacity-60">
-                        {opt.desc}
-                      </span>
-                    </button>
-                  );
-                })}
+            </div>
+
+            {/* Sincronização Offline - Coming Soon */}
+            <div className="relative group">
+              <div className="flex items-center justify-between p-3 bg-white dark:bg-zinc-900 text-text-dark dark:text-white rounded-2xl border border-emerald-500/20 transition-all opacity-60 cursor-not-allowed">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-zinc-100 dark:bg-zinc-800 text-text-light">
+                    <Database className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-bold">Store & Sync Offline</div>
+                    <div className="text-[8px] font-medium text-text-light">
+                      Persistência local agressiva
+                    </div>
+                  </div>
+                </div>
+                <div className="w-10 h-6 rounded-full p-1 bg-zinc-200 dark:bg-zinc-700 cursor-not-allowed">
+                  <div className="w-4 h-4 bg-white rounded-full transition-all translate-x-0" />
+                </div>
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center bg-black/5 dark:bg-black/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity cursor-not-allowed">
+                <span className="bg-emerald-500 text-white text-[9px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                  Em Breve
+                </span>
               </div>
             </div>
 
-            <div className="p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl relative overflow-hidden mt-auto">
+            {/* Media Quality Selector - Coming Soon */}
+            <div className="relative group">
+              <div className="p-3 bg-white dark:bg-zinc-900 rounded-2xl border border-emerald-500/20 opacity-60 cursor-not-allowed">
+                <div className="flex items-center gap-2 mb-2.5">
+                  <Tv className="w-3.5 h-3.5 text-emerald-500" />
+                  <span className="text-[9px] font-black text-text-light uppercase tracking-widest">
+                    Qualidade de Transcodificação
+                  </span>
+                </div>
+                <div className="flex gap-1.5 pointer-events-none">
+                  {[
+                    { value: 'speed', label: 'Velocidade', desc: 'Máxima performance' },
+                    { value: 'balanced', label: 'Balanceado', desc: 'Qualidade e fluxo' },
+                    { value: 'quality', label: 'Qualidade', desc: 'Máxima fidelidade' },
+                  ].map((opt) => {
+                    const isActive = mediaQuality === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        tabIndex={-1}
+                        className={`flex-1 py-2 px-1 rounded-xl text-[9px] font-black uppercase border flex flex-col items-center gap-0.5 transition-all ${
+                          isActive
+                            ? 'bg-emerald-500/10 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500'
+                            : 'bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 text-text-light'
+                        }`}
+                      >
+                        <span>{opt.label}</span>
+                        <span className="text-[7px] font-medium normal-case opacity-60">
+                          {opt.desc}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <div className="absolute inset-0 flex items-center justify-center bg-black/5 dark:bg-black/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity cursor-not-allowed">
+                <span className="bg-emerald-500 text-white text-[9px] font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                  Em Breve
+                </span>
+              </div>
+            </div>
+
+            {/* Flow Stability - Mock Display */}
+            <div className="p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl relative overflow-hidden mt-auto opacity-60">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
@@ -283,6 +291,9 @@ export default function SettingsMidiaTab({
                 <span className="text-[10px] font-bold text-emerald-500 font-mono">
                   99.9% Nominal
                 </span>
+              </div>
+              <div className="text-[7px] text-text-light mt-2 text-center uppercase tracking-wide">
+                Monitoramento em tempo real - Em breve
               </div>
             </div>
           </div>
