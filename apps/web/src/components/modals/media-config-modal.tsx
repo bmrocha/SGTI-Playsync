@@ -741,23 +741,27 @@ export function MediaConfigModal({
                 { id: 'content', label: 'CONTEÚDO', icon: Monitor },
                 { id: 'layout', label: 'LAYOUTS', icon: Layout },
                 { id: 'schedule', label: 'AGENDA', icon: Clock },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => handleTabChange(tab.id as any)}
-                  className={cn(
-                    'px-4 py-2 rounded-lg text-[10px] font-bold tracking-widest flex items-center gap-2 transition-all uppercase',
-                    activeTab === tab.id
-                      ? 'bg-brand-main text-white shadow-sm'
-                      : theme === 'dark'
-                        ? 'text-slate-400 hover:bg-white/5'
-                        : 'text-slate-500 hover:text-brand-main hover:bg-slate-50',
-                  )}
-                >
-                  <tab.icon className="w-3.5 h-3.5" />
-                  {tab.label}
-                </button>
-              ))}
+              ].map((tab) => {
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={isActive ? () => handleTabChange(tab.id as any) : undefined}
+                    disabled={!isActive}
+                    className={cn(
+                      'px-4 py-2 rounded-lg text-[10px] font-bold tracking-widest flex items-center gap-2 transition-all uppercase',
+                      isActive
+                        ? 'bg-brand-main text-white shadow-sm'
+                        : theme === 'dark'
+                          ? 'text-slate-400 opacity-50 cursor-not-allowed'
+                          : 'text-slate-500 opacity-50 cursor-not-allowed',
+                    )}
+                  >
+                    <tab.icon className="w-3.5 h-3.5" />
+                    {tab.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
