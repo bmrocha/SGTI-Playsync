@@ -178,7 +178,7 @@ export function LicenseGuard({ children }: { children: React.ReactNode }) {
                 </button>
                 {idLocked && (
                   <span className="text-emerald-500 text-xs font-bold flex items-center gap-1 bg-emerald-500/10 px-2 py-1 rounded">
-                    <Check className="w-3 h-3" /> ID Travado
+                    <Check className="w-3 h-3" /> ID Copiado Disnara!
                   </span>
                 )}
               </div>

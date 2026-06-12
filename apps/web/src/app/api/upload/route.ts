@@ -16,7 +16,7 @@ import Busboy from 'busboy';
 
 // Configure route for file uploads
 export const dynamic = 'force-dynamic';
-export const maxDuration = 60; // 60 seconds max for large uploads
+export const maxDuration = 120; // 120 seconds max for large uploads
 
 // Manually parse multipart form data to bypass Next.js body size limits
 function parseMultipartFormData(
@@ -33,6 +33,7 @@ function parseMultipartFormData(
     const busboy = Busboy({ headers: { 'content-type': contentType } });
     let file: File | null = null;
     let error: string | undefined;
+    let streamEnded = false;
 
     busboy.on('file', (_fieldname, fileStream, info) => {
       const { filename, mimeType } = info;
@@ -49,21 +50,31 @@ function parseMultipartFormData(
     });
 
     busboy.on('error', (err: Error) => {
-      error = err.message;
+      if (!streamEnded) {
+        streamEnded = true;
+        error = err.message;
+        resolve({ file: null, error });
+      }
     });
 
     busboy.on('finish', () => {
-      if (error) {
-        resolve({ file: null, error });
-      } else {
-        resolve({ file });
+      if (!streamEnded) {
+        streamEnded = true;
+        if (error) {
+          resolve({ file: null, error });
+        } else {
+          resolve({ file });
+        }
       }
     });
 
     // Pipe the raw request body to busboy
     const reader = request.body?.getReader();
     if (!reader) {
-      resolve({ file: null, error: 'No body' });
+      if (!streamEnded) {
+        streamEnded = true;
+        resolve({ file: null, error: 'No body' });
+      }
       return;
     }
 
@@ -77,7 +88,10 @@ function parseMultipartFormData(
         busboy.write(value);
         push();
       } catch (err) {
-        busboy.emit('error', err);
+        if (!streamEnded) {
+          streamEnded = true;
+          busboy.emit('error', err);
+        }
       }
     };
 
@@ -220,6 +234,9 @@ export async function POST(request: NextRequest) {
   const _lc = await requireLicense();
   if (_lc) return _lc;
 
+  const startTime = Date.now();
+  logger.info('[Upload] Starting upload process');
+
   try {
     // Authenticate user
     const token = request.cookies.get('auth_token')?.value;
@@ -233,6 +250,7 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = payload.id as string;
+    logger.info({ userId }, '[Upload] User authenticated');
 
     // Read the raw body with size limit check
     const contentLength = request.headers.get('content-length');
@@ -245,7 +263,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Parse FormData manually using Busboy to bypass Next.js body size limits
+    logger.info('[Upload] Parsing FormData with Busboy');
+    const parseStart = Date.now();
     const { file, error: parseError } = await parseMultipartFormData(request);
+    logger.info({ duration: Date.now() - parseStart }, '[Upload] FormData parsing completed');
 
     if (parseError) {
       logger.error({ error: parseError }, '[Upload] Failed to parse FormData');
@@ -261,6 +282,11 @@ export async function POST(request: NextRequest) {
     if (!file) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
+
+    logger.info(
+      { fileName: file.name, fileSize: file.size, fileType: file.type },
+      '[Upload] File received',
+    );
 
     const originalName = file.name;
     const extension = path.extname(originalName);
@@ -290,12 +316,21 @@ export async function POST(request: NextRequest) {
     const filepath = path.join(UPLOAD_DIR, filename);
 
     // Stream file directly to disk — evita carregar o arquivo inteiro na RAM
+    logger.info({ filepath }, '[Upload] Writing file to disk');
+    const writeStart = Date.now();
     const webStream = file.stream() as ReadableStream;
     const readable = Readable.fromWeb(webStream);
     await pipeline(readable, fs.createWriteStream(filepath));
+    logger.info({ duration: Date.now() - writeStart }, '[Upload] File written to disk');
 
     // Validate magic bytes (tipo real do arquivo, nao confiar apenas na extensao)
+    logger.info({ filepath, extLower }, '[Upload] Validating magic bytes');
+    const magicStart = Date.now();
     const validTypes = validateFileMagicBytes(filepath, extLower);
+    logger.info(
+      { duration: Date.now() - magicStart, valid: validTypes },
+      '[Upload] Magic bytes validation completed',
+    );
     if (!validTypes) {
       fs.unlinkSync(filepath);
       return NextResponse.json(
@@ -331,9 +366,11 @@ export async function POST(request: NextRequest) {
     await ensureMediaLibraryTable();
 
     const mediaId = crypto.randomUUID();
+    logger.info({ mediaId }, '[Upload] Saving to database');
+    const dbStart = Date.now();
     const insertQuery = `
             INSERT INTO media_library (
-                id,
+                id, 
                 filename, 
                 original_name, 
                 mime_type, 
@@ -357,6 +394,7 @@ export async function POST(request: NextRequest) {
       ENVIRONMENT,
       userId,
     ]);
+    logger.info({ duration: Date.now() - dbStart }, '[Upload] Database insert completed');
 
     const newMedia = result.rows[0];
 
@@ -371,6 +409,9 @@ export async function POST(request: NextRequest) {
       resourceName: originalName,
     });
 
+    const totalTime = Date.now() - startTime;
+    logger.info({ totalTime }, '[Upload] Upload completed successfully');
+
     return NextResponse.json({
       success: true,
       url: publicUrl,
@@ -379,6 +420,7 @@ export async function POST(request: NextRequest) {
       uploaded_at: newMedia.uploaded_at,
     });
   } catch (error) {
+    const totalTime = Date.now() - startTime;
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     const errorStack = error instanceof Error ? error.stack : '';
 
@@ -387,9 +429,10 @@ export async function POST(request: NextRequest) {
         err: error,
         message: errorMessage,
         stack: errorStack,
+        totalTime,
         timestamp: new Date().toISOString(),
       },
-      'Upload error:',
+      '[Upload] Upload failed:',
     );
 
     // Return more specific error messages based on error type
