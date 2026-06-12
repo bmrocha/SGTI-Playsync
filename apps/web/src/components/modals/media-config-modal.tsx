@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Check,
   Clock,
@@ -28,6 +28,7 @@ import { DropZone } from '@/components/upload/drop-zone';
 
 import { LocationAutocomplete } from '@/components/inputs/location-autocomplete';
 import { useThemeStore } from '@/lib/theme-store';
+
 import { cn, generateUUID } from '@/lib/utils';
 import { LayoutRenderer } from '@/components/player/layout-renderer';
 import { notifyError, notifySuccess } from '@/lib/notification-store';
@@ -98,6 +99,7 @@ export function MediaConfigModal({
   const [singleFile, setSingleFile] = useState<File | null>(null);
   const [singlePreview, setSinglePreview] = useState<string>('');
   const [layoutTemplateId, setLayoutTemplateId] = useState<string>('');
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [regionConfig, setRegionConfig] = useState<Record<string, any>>({});
   const [activeTab, setActiveTab] = useState<'content' | 'layout' | 'schedule'>('content');
   const [urlType, setUrlType] = useState<'auto' | 'video' | 'youtube' | 'web'>('auto');
@@ -201,66 +203,97 @@ export function MediaConfigModal({
   };
 
   // Construct item helper
-  const constructItem = (overrideUrl?: string, overrideZones?: any[]): MediaItem => {
-    const finalLayout = layoutTemplateId ? 'single' : layout;
-    const currentUrl = overrideUrl !== undefined ? overrideUrl : singleUrl || singlePreview;
-    const currentZones = overrideZones !== undefined ? overrideZones : zoneDraft;
+  const constructItem = useCallback(
+    (
+      overrideUrl?: string,
+      overrideZones?: Array<{
+        id: string;
+        url?: string;
+        file?: File;
+        preview?: string;
+        type?: string;
+      }>,
+    ): MediaItem => {
+      const finalLayout = layoutTemplateId ? 'single' : layout;
+      const currentUrl = overrideUrl !== undefined ? overrideUrl : singleUrl || singlePreview;
+      const currentZones = overrideZones !== undefined ? overrideZones : zoneDraft;
 
-    let type: MediaType = 'image';
+      let type: MediaType = 'image';
 
-    if (finalLayout === 'single') {
-      if (singleFile) {
-        const isVideoFile =
-          singleFile.type.startsWith('video') ||
-          singleFile.name.match(/\.(mp4|webm|ogg|mov|mkv|m4v|avi|wmv|flv)$/i);
-        type = isVideoFile ? 'video' : 'image';
-      } else if (currentUrl) {
-        if (urlType === 'youtube') type = 'youtube';
-        else if (urlType === 'video') type = 'video';
-        else if (urlType === 'web') type = 'web';
-        else {
-          if (isYoutube(currentUrl)) type = 'youtube';
-          else if (currentUrl.match(/\.(mp4|webm|ogg|mov|mkv|m4v|avi|wmv|flv)$/i)) type = 'video';
-          else if (currentUrl.match(/\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i)) type = 'image';
-          else type = 'web';
+      if (finalLayout === 'single') {
+        if (singleFile) {
+          const isVideoFile =
+            singleFile.type.startsWith('video') ||
+            singleFile.name.match(/\.(mp4|webm|ogg|mov|mkv|m4v|avi|wmv|flv)$/i);
+          type = isVideoFile ? 'video' : 'image';
+        } else if (currentUrl) {
+          if (urlType === 'youtube') type = 'youtube';
+          else if (urlType === 'video') type = 'video';
+          else if (urlType === 'web') type = 'web';
+          else {
+            if (isYoutube(currentUrl)) type = 'youtube';
+            else if (currentUrl.match(/\.(mp4|webm|ogg|mov|mkv|m4v|avi|wmv|flv)$/i)) type = 'video';
+            else if (currentUrl.match(/\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i)) type = 'image';
+            else type = 'web';
+          }
+        } else if (layoutTemplateId) {
+          type = 'image';
         }
-      } else if (layoutTemplateId) {
-        type = 'image';
+      } else {
+        type = 'layout';
       }
-    } else {
-      type = 'layout';
-    }
 
-    let finalUrlProcessed = currentUrl;
-    if (type === 'youtube' && !currentUrl.startsWith('blob:')) {
-      finalUrlProcessed = parseYoutubeVideoId(currentUrl) ?? currentUrl;
-    }
+      let finalUrlProcessed = currentUrl;
+      if (type === 'youtube' && !currentUrl.startsWith('blob:')) {
+        finalUrlProcessed = parseYoutubeVideoId(currentUrl) ?? currentUrl;
+      }
 
-    return {
-      id: initialItem?.id || generateUUID(),
-      type,
-      url: finalLayout === 'single' ? finalUrlProcessed : '',
-      name:
-        initialItem?.name ||
-        singleFile?.name ||
-        (currentUrl ? 'URL Media' : layoutTemplateId ? 'Layout Template' : `Slide ${layout}`),
+      return {
+        id: initialItem?.id || generateUUID(),
+        type,
+        url: finalLayout === 'single' ? finalUrlProcessed : '',
+        name:
+          initialItem?.name ||
+          singleFile?.name ||
+          (currentUrl ? 'URL Media' : layoutTemplateId ? 'Layout Template' : `Slide ${layout}`),
+        duration,
+        rotation,
+        layout: finalLayout,
+        zones: finalLayout === 'single' ? undefined : currentZones,
+        layoutTemplateId: layoutTemplateId || undefined,
+        regionConfig: regionConfig,
+        schedule: {
+          startDate: startDate || null,
+          endDate: endDate || null,
+          startTime: allDay ? null : startTime || null,
+          endTime: allDay ? null : endTime || null,
+          allDay,
+          daysOfWeek,
+          enabled: scheduleEnabled,
+        },
+      };
+    },
+    [
+      layoutTemplateId,
+      layout,
+      singleUrl,
+      singlePreview,
+      zoneDraft,
+      singleFile,
+      urlType,
+      initialItem,
       duration,
       rotation,
-      layout: finalLayout,
-      zones: finalLayout === 'single' ? undefined : currentZones,
-      layoutTemplateId: layoutTemplateId || undefined,
-      regionConfig: regionConfig,
-      schedule: {
-        startDate: startDate || null,
-        endDate: endDate || null,
-        startTime: allDay ? null : startTime || null,
-        endTime: allDay ? null : endTime || null,
-        allDay,
-        daysOfWeek,
-        enabled: scheduleEnabled,
-      },
-    };
-  };
+      regionConfig,
+      startDate,
+      endDate,
+      startTime,
+      endTime,
+      allDay,
+      daysOfWeek,
+      scheduleEnabled,
+    ],
+  );
 
   // Auto-save Effect
   useEffect(() => {
@@ -301,6 +334,7 @@ export function MediaConfigModal({
     initialItem,
     onAutoSave,
     singleFile,
+    constructItem,
   ]);
 
   const handleSave = async () => {
@@ -328,7 +362,7 @@ export function MediaConfigModal({
         const formData = new FormData();
         formData.append('file', singleFile);
 
-        const response = await new Promise<any>((resolve, reject) => {
+        const response = await new Promise<unknown>((resolve, reject) => {
           const xhr = new XMLHttpRequest();
           xhr.open('POST', '/api/upload');
 
@@ -361,7 +395,7 @@ export function MediaConfigModal({
           xhr.send(formData);
         });
 
-        finalUrl = response.url;
+        finalUrl = (response as { url: string }).url;
       } catch (error) {
         console.error('Upload error:', error);
         notifyError(
@@ -630,6 +664,7 @@ export function MediaConfigModal({
             transform: `scale(1.12) rotate(${rotation}deg)`,
           }}
         />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={singlePreview}
           alt="Preview"
@@ -746,7 +781,11 @@ export function MediaConfigModal({
                 return (
                   <button
                     key={tab.id}
-                    onClick={isActive ? () => handleTabChange(tab.id as any) : undefined}
+                    onClick={
+                      isActive
+                        ? () => handleTabChange(tab.id as 'content' | 'layout' | 'schedule')
+                        : undefined
+                    }
                     disabled={!isActive}
                     className={cn(
                       'px-4 py-2 rounded-lg text-[10px] font-bold tracking-widest flex items-center gap-2 transition-all uppercase',
@@ -909,7 +948,9 @@ export function MediaConfigModal({
                           ].map((t) => (
                             <button
                               key={t.id}
-                              onClick={() => setUrlType(t.id as any)}
+                              onClick={() =>
+                                setUrlType(t.id as 'auto' | 'video' | 'youtube' | 'web')
+                              }
                               className={cn(
                                 'p-2 rounded-md transition-all',
                                 urlType === t.id
@@ -1694,7 +1735,8 @@ export function MediaConfigModal({
                                           const newEvents = holidays.filter(
                                             (h) =>
                                               !currentEvents.some(
-                                                (e: any) => e.date === h.date && e.name === h.name,
+                                                (e: { date: string; name: string }) =>
+                                                  e.date === h.date && e.name === h.name,
                                               ),
                                           );
 
