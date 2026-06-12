@@ -3,7 +3,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { KeyRound, X, Loader2, Copy, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 import { notifySuccess, notifyError } from '@/lib/notification-store';
-import { clearTemporaryInstallationId } from '@/lib/license-service';
+
+// IMPORTANT: Import from license-client-utils, NOT license-service
+// license-service imports @playsync/database which cannot run in browser
+import { clearTemporaryInstallationId } from '@/lib/license-client-utils';
 
 type Props = {
   open: boolean;
@@ -33,7 +36,7 @@ export function TokenActivationModal({
     if (open && !currentInstallationId) {
       setCurrentInstallationId(installationId);
     }
-  }, [open]);
+  }, [open, currentInstallationId, installationId]);
 
   // Update from parent only if we don't have one yet (first time)
   useEffect(() => {
