@@ -707,7 +707,7 @@ export function MediaConfigModal({
         {/* Body - Compact */}
         <div
           className={cn(
-            'flex-1 overflow-y-auto p-4 custom-scrollbar relative',
+            'flex-1 overflow-y-auto p-4 custom-scrollbar relative min-h-0',
             theme === 'dark' ? 'bg-[#020605]' : 'bg-slate-50',
           )}
         >
@@ -1831,7 +1831,7 @@ export function MediaConfigModal({
             </div>
 
             {/* LAYOUT TAB */}
-            <div className={activeTab === 'layout' ? 'animate-fadeIn space-y-6' : 'hidden'}>
+            <div className={activeTab === 'layout' ? 'animate-fadeIn space-y-6 pb-4' : 'hidden'}>
               <MediaConfigLayoutTab
                 layout={layout}
                 layoutTemplateId={layoutTemplateId}
