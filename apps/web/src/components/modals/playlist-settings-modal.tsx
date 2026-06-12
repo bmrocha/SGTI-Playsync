@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { X, Save, Tv, Building2 } from 'lucide-react';
+import { X, Save, Tv, Building2, Search, CheckSquare, Square, CheckCircle2 } from 'lucide-react';
 import { CompanySelector } from '@/components/ui/company-selector';
 import { notifyError, notifySuccess } from '@/lib/notification-store';
 
@@ -42,6 +42,7 @@ export function PlaylistSettingsModal({
   const [availableSectors, setAvailableSectors] = useState<Sector[]>([]);
   const [loadingSectors, setLoadingSectors] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [sectorSearchTerm, setSectorSearchTerm] = useState('');
 
   // Convert companies to options format
   const companyOptions = useMemo(() => {
@@ -86,6 +87,24 @@ export function PlaylistSettingsModal({
     );
   };
 
+  // Filter sectors based on search
+  const filteredSectors = useMemo(() => {
+    return availableSectors.filter((sector) =>
+      sector.name.toLowerCase().includes(sectorSearchTerm.toLowerCase()),
+    );
+  }, [availableSectors, sectorSearchTerm]);
+
+  const handleSelectAllSectors = () => {
+    const allFilteredIds = filteredSectors.map((s) => s.id);
+    const newIds = Array.from(new Set([...sectorIds, ...allFilteredIds]));
+    setSectorIds(newIds);
+  };
+
+  const handleDeselectAllSectors = () => {
+    const visibleIds = filteredSectors.map((s) => s.id);
+    setSectorIds((prev) => prev.filter((id) => !visibleIds.includes(id)));
+  };
+
   const fetchPlaylistSectors = async (playlistId: string) => {
     try {
       const res = await fetch(`/api/playlists/${playlistId}/sectors`);
@@ -126,7 +145,7 @@ export function PlaylistSettingsModal({
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 animate-fadeIn">
-      <div className="bg-panel-bg rounded-xl shadow-2xl w-full max-w-lg overflow-hidden border border-border flex flex-col">
+      <div className="bg-panel-bg rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden border border-border flex flex-col">
         {/* Header */}
         <div className="bg-panel-bg p-5 border-b border-border flex items-center justify-between">
           <h3 className="text-xl font-bold text-text-dark flex items-center gap-2">
@@ -142,7 +161,7 @@ export function PlaylistSettingsModal({
         </div>
 
         {/* Body */}
-        <div className="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
+        <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
           <div>
             <label className="block text-sm font-bold text-brand-main mb-2">Nome da Playlist</label>
             <input
@@ -179,21 +198,85 @@ export function PlaylistSettingsModal({
             ) : availableSectors.length === 0 ? (
               <p className="text-xs text-text-light py-4 text-center">Nenhum setor disponível</p>
             ) : (
-              <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto pr-1">
-                {availableSectors.map((sector) => (
-                  <label
-                    key={sector.id}
-                    className="flex items-center gap-2 p-2.5 bg-border/20 rounded-lg border border-border cursor-pointer hover:bg-border/30 transition-colors"
-                  >
+              <div className="space-y-3">
+                {/* Search and Bulk Actions */}
+                <div className="flex flex-col sm:flex-row gap-3 justify-between items-center bg-gray-50 dark:bg-white/5 p-3 rounded-lg border border-border">
+                  <div className="relative w-full sm:max-w-xs">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-light" />
                     <input
-                      type="checkbox"
-                      checked={sectorIds.includes(sector.id)}
-                      onChange={() => toggleSector(sector.id)}
-                      className="w-4 h-4 rounded border-border text-brand-main focus:ring-brand-main/20"
+                      type="text"
+                      placeholder="Buscar setor..."
+                      value={sectorSearchTerm}
+                      onChange={(e) => setSectorSearchTerm(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2 text-sm bg-body-bg border border-border rounded-md focus:border-brand-main focus:ring-1 focus:ring-brand-main/50 outline-none transition-all"
                     />
-                    <span className="text-sm text-text-dark">{sector.name}</span>
-                  </label>
-                ))}
+                  </div>
+
+                  <div className="flex gap-2 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={handleSelectAllSectors}
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold text-brand-main bg-brand-main/10 hover:bg-brand-main/20 rounded-md transition-colors"
+                    >
+                      <CheckSquare className="w-4 h-4" />
+                      Todos
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDeselectAllSectors}
+                      className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-3 py-2 text-xs font-bold text-text-light hover:text-text-dark hover:bg-gray-200 dark:hover:bg-white/10 rounded-md transition-colors"
+                    >
+                      <Square className="w-4 h-4" />
+                      Limpar
+                    </button>
+                  </div>
+                </div>
+
+                {/* Grid stats */}
+                <div className="text-xs text-text-light font-medium px-1">
+                  Mostrando {filteredSectors.length} de {availableSectors.length} setores
+                  {sectorIds.length > 0 && (
+                    <span className="text-brand-main ml-2">
+                      • {sectorIds.length} selecionado(s)
+                    </span>
+                  )}
+                </div>
+
+                {/* Sectors Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-[300px] overflow-y-auto p-1">
+                  {filteredSectors.length > 0 ? (
+                    filteredSectors.map((sector) => {
+                      const isSelected = sectorIds.includes(sector.id);
+                      return (
+                        <label
+                          key={sector.id}
+                          className={`flex items-center gap-2 p-3 rounded-xl border-2 cursor-pointer transition-all group ${
+                            isSelected
+                              ? 'border-brand-main bg-brand-main/5 shadow-sm'
+                              : 'border-border bg-card hover:border-brand-main/30 hover:shadow-md'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleSector(sector.id)}
+                            className="w-4 h-4 rounded border-border text-brand-main focus:ring-brand-main/20"
+                          />
+                          <span className="text-sm text-text-dark flex-1 truncate">
+                            {sector.name}
+                          </span>
+                          {isSelected && (
+                            <CheckCircle2 className="w-3 h-3 text-brand-main flex-shrink-0" />
+                          )}
+                        </label>
+                      );
+                    })
+                  ) : (
+                    <div className="col-span-full py-8 text-center text-text-light italic">
+                      Nenhum setor encontrado para "{sectorSearchTerm}"
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
