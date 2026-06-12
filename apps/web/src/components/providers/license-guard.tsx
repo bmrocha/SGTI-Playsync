@@ -23,6 +23,7 @@ export function LicenseGuard({ children }: { children: React.ReactNode }) {
   const [copiedId, setCopiedId] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
   const [savingKey, setSavingKey] = useState(false);
+  const [idLocked, setIdLocked] = useState(false);
 
   const checkLicense = async () => {
     try {
@@ -55,7 +56,10 @@ export function LicenseGuard({ children }: { children: React.ReactNode }) {
       const res = await fetch('/api/license/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: jwtToken }),
+        body: JSON.stringify({
+          token: jwtToken,
+          installationId: status?.installationId,
+        }),
       });
       const data = await res.json();
       if (res.ok && data.success) {
@@ -97,6 +101,15 @@ export function LicenseGuard({ children }: { children: React.ReactNode }) {
     navigator.clipboard.writeText(text);
     setter(true);
     setTimeout(() => setter(false), 2000);
+  };
+
+  const handleCopyInstallationId = () => {
+    if (status?.installationId) {
+      navigator.clipboard.writeText(status.installationId);
+      setCopiedId(true);
+      setIdLocked(true); // Lock the ID so it doesn't change
+      setTimeout(() => setCopiedId(false), 2000);
+    }
   };
 
   if (loading)
@@ -149,10 +162,12 @@ export function LicenseGuard({ children }: { children: React.ReactNode }) {
                   {status.installationId}
                 </code>
                 <button
-                  onClick={() =>
-                    status.installationId && copyToClipboard(status.installationId, setCopiedId)
-                  }
-                  className="p-4 bg-zinc-900 border border-white/5 hover:bg-zinc-800 rounded-xl transition-colors text-zinc-400"
+                  onClick={handleCopyInstallationId}
+                  className={`p-4 border rounded-xl transition-colors text-zinc-400 ${
+                    idLocked
+                      ? 'bg-emerald-500/20 border-emerald-500/30'
+                      : 'bg-zinc-900 border-white/5 hover:bg-zinc-800'
+                  }`}
                   title="Copiar ID"
                 >
                   {copiedId ? (
@@ -161,6 +176,11 @@ export function LicenseGuard({ children }: { children: React.ReactNode }) {
                     <Copy className="w-5 h-5" />
                   )}
                 </button>
+                {idLocked && (
+                  <span className="text-emerald-500 text-xs font-bold flex items-center gap-1 bg-emerald-500/10 px-2 py-1 rounded">
+                    <Check className="w-3 h-3" /> ID Travado
+                  </span>
+                )}
               </div>
             </div>
 

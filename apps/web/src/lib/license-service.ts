@@ -31,7 +31,7 @@ export function generateTemporaryInstallationId(): string {
   return crypto.randomUUID();
 }
 
-// Get persisted temporary installation ID from localStorage (client-side only)
+// Get persisted temporary installation ID from localStorage (safe: checks window)
 function getTemporaryInstallationId(): string | null {
   if (typeof window === 'undefined') return null;
   try {
@@ -41,7 +41,7 @@ function getTemporaryInstallationId(): string | null {
   }
 }
 
-// Set persisted temporary installation ID to localStorage (client-side only)
+// Set persisted temporary installation ID to localStorage (safe: checks window)
 function setTemporaryInstallationId(id: string): void {
   if (typeof window === 'undefined') return;
   try {
@@ -51,7 +51,7 @@ function setTemporaryInstallationId(id: string): void {
   }
 }
 
-// Clear persisted temporary installation ID from localStorage
+// Clear persisted temporary installation ID from localStorage (safe: checks window)
 export function clearTemporaryInstallationId(): void {
   if (typeof window === 'undefined') return;
   try {
