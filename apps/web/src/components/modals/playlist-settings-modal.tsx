@@ -105,18 +105,6 @@ export function PlaylistSettingsModal({
     setSectorIds((prev) => prev.filter((id) => !visibleIds.includes(id)));
   };
 
-  const fetchPlaylistSectors = async (playlistId: string) => {
-    try {
-      const res = await fetch(`/api/playlists/${playlistId}/sectors`);
-      if (res.ok) {
-        const data = await res.json();
-        setSectorIds((data.sectors || []).map((s: any) => s.id));
-      }
-    } catch (e) {
-      console.error('Failed to fetch playlist sectors:', e);
-    }
-  };
-
   const handleSave = async () => {
     if (!playlist) return;
     if (!name.trim()) {
@@ -144,7 +132,7 @@ export function PlaylistSettingsModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 animate-fadeIn">
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-9999 flex items-center justify-center p-4 animate-fadeIn">
       <div className="bg-panel-bg rounded-xl shadow-2xl w-full max-w-3xl overflow-hidden border border-border flex flex-col">
         {/* Header */}
         <div className="bg-panel-bg p-5 border-b border-border flex items-center justify-between">
@@ -186,7 +174,7 @@ export function PlaylistSettingsModal({
 
           {/* Setores */}
           <div>
-            <label className="block text-sm font-bold text-brand-main mb-2 flex items-center gap-2">
+            <label className="flex text-sm font-bold text-brand-main mb-2 items-center gap-2">
               <Building2 className="w-4 h-4 text-brand-main" />
               Setores
             </label>
@@ -243,7 +231,7 @@ export function PlaylistSettingsModal({
                 </div>
 
                 {/* Sectors Grid */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-[300px] overflow-y-auto p-1">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-75 overflow-y-auto p-1">
                   {filteredSectors.length > 0 ? (
                     filteredSectors.map((sector) => {
                       const isSelected = sectorIds.includes(sector.id);
@@ -266,7 +254,7 @@ export function PlaylistSettingsModal({
                             {sector.name}
                           </span>
                           {isSelected && (
-                            <CheckCircle2 className="w-3 h-3 text-brand-main flex-shrink-0" />
+                            <CheckCircle2 className="w-3 h-3 text-brand-main shrink-0" />
                           )}
                         </label>
                       );
