@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAppStore, MediaItem } from '@/lib/store';
+import { useThemeStore } from '@/lib/theme-store';
 import { Play, Link2, ArrowLeft, Plus, Layout } from 'lucide-react';
 
 import {
@@ -60,6 +61,7 @@ export default function EditorPage() {
 
   const { confirm, confirmProps } = useConfirm();
   const { success, error, alertElement } = useAlert();
+  const { theme } = useThemeStore();
   const [items, setItems] = useState<MediaItem[]>([]);
   const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
   const [isPlayerOpen, setIsPlayerOpen] = useState(false);
@@ -186,17 +188,29 @@ export default function EditorPage() {
   // Apply current layout to ALL existing items
   const handleApplyLayoutToAll = () => {
     if (items.length === 0) return;
-    const layoutName = LAYOUT_CONFIGS.find((l) => l.id === layout)?.name || layout;
+
+    const hasTemplate = layoutTemplateId !== '';
+    const targetName = hasTemplate
+      ? LAYOUT_TEMPLATES.find((t) => t.id === layoutTemplateId)?.name || 'template'
+      : LAYOUT_CONFIGS.find((l) => l.id === layout)?.name || layout;
 
     confirm({
-      title: 'Aplicar Layout a Todos',
-      message: `Deseja aplicar o layout "${layoutName}" a todos os ${items.length} itens da playlist?`,
+      title: hasTemplate ? 'Aplicar Template a Todos' : 'Aplicar Layout a Todos',
+      message: `Deseja aplicar "${targetName}" a todos os ${items.length} itens da playlist?`,
       type: 'warning',
       onConfirm: () => {
         items.forEach((_, index) => {
-          updateMediaItem(playlistId, index, { layout });
+          updateMediaItem(playlistId, index, {
+            layout: hasTemplate ? 'single' : layout,
+            layoutTemplateId: hasTemplate ? layoutTemplateId : undefined,
+          });
         });
-        success('Layout Atualizado', 'Layout foi aplicado a todos os itens da playlist!');
+        success(
+          hasTemplate ? 'Template Aplicado' : 'Layout Atualizado',
+          hasTemplate
+            ? 'Template foi aplicado a todos os itens da playlist!'
+            : 'Layout foi aplicado a todos os itens da playlist!',
+        );
       },
     });
   };
@@ -425,10 +439,12 @@ export default function EditorPage() {
                       <button
                         type="button"
                         onClick={handleApplyLayoutToAll}
-                        disabled={items.filter((i) => i.type !== 'widget').length === 0}
+                        disabled={
+                          items.filter((i) => i.type !== 'widget').length === 0 && !layoutTemplateId
+                        }
                         className="btn-premium bg-brand-accent text-black px-4 py-3 w-full font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Aplicar a todos
+                        {layoutTemplateId ? 'Aplicar Template' : 'Aplicar a todos'}
                       </button>
                     </div>
                   </div>
@@ -442,6 +458,10 @@ export default function EditorPage() {
                       Premium
                     </span>
                   </h3>
+                  <p className="text-xs text-text-light mb-3">
+                    Clique em um template e depois em "Aplicar Template" para usar em todos os
+                    slides.
+                  </p>
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {LAYOUT_TEMPLATES.map((template) => (
                       <LayoutPreviewCard
@@ -452,7 +472,7 @@ export default function EditorPage() {
                           setLayoutTemplateId(template.id);
                           setLayout('single');
                         }}
-                        theme="dark"
+                        theme={theme}
                       />
                     ))}
                   </div>
