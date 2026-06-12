@@ -21,6 +21,7 @@ export const maxDuration = 120; // 120 seconds max for large uploads
 // Manually parse multipart form data to bypass Next.js body size limits
 function parseMultipartFormData(
   request: NextRequest,
+  maxSizeBytes?: number,
 ): Promise<{ file: File | null; error?: string }> {
   return new Promise((resolve) => {
     const contentType = request.headers.get('content-type') || '';
@@ -30,22 +31,41 @@ function parseMultipartFormData(
       return;
     }
 
-    const busboy = Busboy({ headers: { 'content-type': contentType } });
+    const busboy = Busboy({
+      headers: { 'content-type': contentType },
+      limits: {
+        fileSize: maxSizeBytes, // Respect system settings
+        files: 1,
+      },
+    });
     let file: File | null = null;
     let error: string | undefined;
     let streamEnded = false;
+    let totalSize = 0;
 
     busboy.on('file', (_fieldname, fileStream, info) => {
       const { filename, mimeType } = info;
       const chunks: Buffer[] = [];
 
       fileStream.on('data', (chunk) => {
+        totalSize += chunk.length;
+
+        // Check size limit during streaming
+        if (maxSizeBytes && totalSize > maxSizeBytes) {
+          fileStream.destroy();
+          error = `File size exceeds limit of ${Math.round(maxSizeBytes / 1024 / 1024)}MB`;
+          busboy.emit('error', new Error(error));
+          return;
+        }
+
         chunks.push(chunk);
       });
 
       fileStream.on('end', () => {
-        const buffer = Buffer.concat(chunks);
-        file = new File([buffer], filename, { type: mimeType });
+        if (!error) {
+          const buffer = Buffer.concat(chunks);
+          file = new File([buffer], filename, { type: mimeType });
+        }
       });
     });
 
@@ -53,6 +73,7 @@ function parseMultipartFormData(
       if (!streamEnded) {
         streamEnded = true;
         error = err.message;
+        logger.error({ err }, '[Upload] Busboy error');
         resolve({ file: null, error });
       }
     });
@@ -252,28 +273,48 @@ export async function POST(request: NextRequest) {
     const userId = payload.id as string;
     logger.info({ userId }, '[Upload] User authenticated');
 
-    // Read the raw body with size limit check
+    // Get system settings to determine max upload size
+    const settings = await getSystemSettings();
+    const defaultVideoLimitMb = 1024;
+    const limitMb = toPositiveInt(settings.uploadLimitVideo) ?? defaultVideoLimitMb;
+    const maxSizeBytes = limitMb * 1024 * 1024;
+
+    // Read the raw body with size limit check based on system settings
     const contentLength = request.headers.get('content-length');
     if (contentLength) {
       const sizeInBytes = parseInt(contentLength, 10);
-      const maxSizeBytes = 1024 * 1024 * 1024; // 1GB
       if (sizeInBytes > maxSizeBytes) {
-        return NextResponse.json({ error: 'Arquivo excede o limite de 1GB' }, { status: 413 });
+        return NextResponse.json(
+          { error: `Arquivo excede o limite de ${limitMb}MB configurado no sistema` },
+          { status: 413 },
+        );
       }
     }
 
     // Parse FormData manually using Busboy to bypass Next.js body size limits
-    logger.info('[Upload] Parsing FormData with Busboy');
+    logger.info({ maxSizeMb: limitMb }, '[Upload] Parsing FormData with Busboy');
     const parseStart = Date.now();
-    const { file, error: parseError } = await parseMultipartFormData(request);
+    const { file, error: parseError } = await parseMultipartFormData(request, maxSizeBytes);
     logger.info({ duration: Date.now() - parseStart }, '[Upload] FormData parsing completed');
 
     if (parseError) {
       logger.error({ error: parseError }, '[Upload] Failed to parse FormData');
+
+      // Provide more specific error messages
+      let errorMessage =
+        'Falha ao processar o upload. Verifique se o arquivo nao excede o limite e tente novamente.';
+      if (parseError.includes('memory') || parseError.includes('buffer')) {
+        errorMessage = `Arquivo muito grande. O limite atual e de ${limitMb}MB. Entre em contato com o suporte se precisar de um limite maior.`;
+      } else if (parseError.includes('timeout')) {
+        errorMessage = 'Upload expirou. Verifique sua conexao e tente novamente.';
+      } else if (parseError.includes('content-type') || parseError.includes('Invalid')) {
+        errorMessage = 'Formato de arquivo invalido. Use o formato multipart/form-data.';
+      }
+
       return NextResponse.json(
         {
-          error:
-            'Falha ao processar o upload. Verifique se o arquivo nao excede o limite e tente novamente.',
+          error: errorMessage,
+          details: process.env.NODE_ENV === 'development' ? parseError : undefined,
         },
         { status: 400 },
       );
@@ -295,16 +336,15 @@ export async function POST(request: NextRequest) {
       file.type?.startsWith('video') ||
       ['.mp4', '.webm', '.mov', '.mkv', '.m4v', '.avi', '.wmv', '.flv', '.ogg'].includes(extLower);
 
-    const settings = await getSystemSettings();
+    // Validate file size against settings (already checked during streaming, but double-check here)
     const defaultImageLimitMb = 500;
-    const defaultVideoLimitMb = 1024;
-    const limitMb = isVideo
-      ? (toPositiveInt(settings.uploadLimitVideo) ?? defaultVideoLimitMb)
-      : (toPositiveInt(settings.uploadLimit) ?? defaultImageLimitMb);
-    const maxSize = limitMb * 1024 * 1024;
-    if (file.size > maxSize) {
+    const videoLimitMb = toPositiveInt(settings.uploadLimitVideo) ?? defaultVideoLimitMb;
+    const imageLimitMb = toPositiveInt(settings.uploadLimit) ?? defaultImageLimitMb;
+    const maxAllowedSize = isVideo ? videoLimitMb * 1024 * 1024 : imageLimitMb * 1024 * 1024;
+
+    if (file.size > maxAllowedSize) {
       return NextResponse.json(
-        { error: `Arquivo excede o limite de ${limitMb}MB` },
+        { error: `Arquivo excede o limite de ${isVideo ? videoLimitMb : imageLimitMb}MB` },
         { status: 413 },
       );
     }
