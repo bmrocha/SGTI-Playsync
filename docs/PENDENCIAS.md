@@ -18,7 +18,7 @@
 - [x] **`companies/page.tsx`**: Os componentes extraídos estão em `src/components/companies/`
 - [x] **`playlists/page.tsx`**: Os componentes extraídos estão em `src/components/playlists/`
 
-- [ ] **Cleanup automático**: Agendar cron para limpeza periódica de `rate_limits` expirados
+- [x] **Cleanup automático**: Cron job implementado em `/api/cron/cleanup-rate-limits` + script `scripts/cleanup-rate-limits.js` para agendamento diário
 
 ## Observações
 
